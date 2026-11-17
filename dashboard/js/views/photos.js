@@ -1,3 +1,4 @@
+// UNUSED
 // Photos: full-bleed editorial slideshow with layout modes.
 (function () {
   'use strict';

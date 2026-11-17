@@ -1,3 +1,4 @@
+// UNUSED
 // Ambient (idle photo frame) and Night (dim red clock) overlays.
 (function () {
   'use strict';

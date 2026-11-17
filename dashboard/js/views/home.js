@@ -82,7 +82,7 @@
             '<span class="h-ev-t">' + (cur ? 'Now' : App.fmt.time(e.start, false)) + '</span>' +
             '<span class="h-ev-n">' + App.esc(e.title) + '</span></button>';
         }).join('') : '<div class="h-free serif"><i>Free</i> the rest of the day</div>') +
-        (more > 0 ? '<button class="h-more" data-go="calendar">+' + more + ' more</button>' : '') +
+        (more > 0 ? '<button class="h-more" data-go="calendar"' + (App.views.calendar ? '' : ' disabled') + '>+' + more + ' more</button>' : '') +
         '</div>';
     }).join('');
   }
@@ -165,7 +165,10 @@
           var ev = e.target.closest('[data-ev]');
           if (ev) { App.eventSheet(App.findEvent(ev.dataset.ev)); return; }
           var g = e.target.closest('[data-go]');
-          if (g) App.go(g.dataset.go);
+          if (g && App.views[g.dataset.go]) App.go(g.dataset.go);
+        });
+        App.$$('button[data-go]', el).forEach(function (button) {
+          button.disabled = !App.views[button.dataset.go];
         });
         V.slides = new App.Slideshow(el.querySelector('.h-photo-stage'), { layout: 'cover', captions: false, interval: 12000, onChange: photoCaption });
       }

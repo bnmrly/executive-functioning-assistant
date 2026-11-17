@@ -1,3 +1,4 @@
+/* UNUSED */
 /* Agents — AI plan usage */
 .agents { height: 100%; display: flex; flex-direction: column; }
 .ag-top { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 16px; flex: none; }

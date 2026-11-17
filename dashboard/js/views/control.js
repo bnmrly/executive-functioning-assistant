@@ -1,3 +1,4 @@
+// UNUSED
 // Home control: status summary, scenes, rooms of tiles, climate, cameras, media.
 (function () {
   'use strict';

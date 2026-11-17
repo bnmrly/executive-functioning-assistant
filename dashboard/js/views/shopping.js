@@ -1,3 +1,4 @@
+// UNUSED
 // Shopping: categorized list (left) + quick-add with usuals (right).
 (function () {
   'use strict';

@@ -1,3 +1,4 @@
+// UNUSED
 // On-device diagnostics overlay. Enable with ?diag in the URL (remembered) or ?diag=0 to turn off.
 (function () {
   'use strict';

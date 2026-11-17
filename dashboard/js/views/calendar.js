@@ -1,3 +1,4 @@
+// UNUSED
 // Calendar: Today-by-person lanes (default), 3-day, rolling week, month.
 (function () {
   'use strict';
@@ -253,24 +254,6 @@
   }
 
   // ------------------------------------------------------------ sheets
-  App.eventSheet = function (e) {
-    if (!e) return;
-    var p = App.evColor(e), fam = App.isFamily(e);
-    App.sheet(
-      '<div class="evs" style="' + App.pstyle(p) + '">' +
-      '<div class="evs-band"><div class="label label--on">' + App.fmt.rel(e.start) + ' · ' + App.fmt.month(e.start) + ' ' + e.start.getDate() + '</div>' +
-      '<h2 class="serif">' + App.esc(e.title) + '</h2>' +
-      '<div class="evs-time num">' + (e.allDay ? 'All day' : App.fmt.range(e.start, e.end)) + '</div></div>' +
-      '<div class="evs-body">' +
-      (e.travel ? '<div class="evs-row evs-leave">' + App.icon('car', 28) + '<div><b>Leave by ' + App.fmt.time(App.leaveBy(e)) + '</b><span>' + e.travel + ' min drive in current traffic</span></div></div>' : '') +
-      (e.loc ? '<div class="evs-row">' + App.icon('pin', 28) + '<div><b>' + App.esc(e.loc) + '</b><span>Tap to send directions to phone</span></div></div>' : '') +
-      '<div class="evs-row">' + App.icon('person', 28) + '<div class="evs-people">' + (fam ? D.people : e.people.map(App.person)).map(function (x) {
-        return '<span class="chip" style="' + App.pstyle(x) + '">' + App.avatar(x, 32) + x.name + '</span>';
-      }).join('') + '</div></div>' +
-      (e.notes ? '<div class="evs-notes serif">“' + App.esc(e.notes) + '”</div>' : '') +
-      '</div></div>', { cls: 'sheet--event' });
-  };
-
   function moreSheet(ids) {
     var list = ids.map(App.findEvent).filter(Boolean);
     App.sheet('<div class="sheet-pad"><div class="label">Overlapping</div><h2 class="serif sheet-h">' + list.length + ' more events</h2>' +

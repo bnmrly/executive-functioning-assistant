@@ -1,3 +1,4 @@
+// UNUSED
 // Agents: AI plan usage at a glance (inspired by CodexBar). Display only.
 (function () {
   'use strict';

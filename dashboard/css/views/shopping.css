@@ -1,3 +1,4 @@
+/* UNUSED */
 /* Shopping */
 .shop { height: 100%; display: grid; grid-template-columns: 1fr 440px; grid-template-rows: auto 1fr; gap: 16px 24px; }
 .s-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 24px; }

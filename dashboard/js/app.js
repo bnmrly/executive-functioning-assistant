@@ -281,6 +281,24 @@
     el.addEventListener('pointercancel', cancel);
   };
 
+  App.eventSheet = function (e) {
+    if (!e) return;
+    var p = App.evColor(e), fam = App.isFamily(e);
+    App.sheet(
+      '<div class="evs" style="' + App.pstyle(p) + '">' +
+      '<div class="evs-band"><div class="label label--on">' + App.fmt.rel(e.start) + ' · ' + App.fmt.month(e.start) + ' ' + e.start.getDate() + '</div>' +
+      '<h2 class="serif">' + App.esc(e.title) + '</h2>' +
+      '<div class="evs-time num">' + (e.allDay ? 'All day' : App.fmt.range(e.start, e.end)) + '</div></div>' +
+      '<div class="evs-body">' +
+      (e.travel ? '<div class="evs-row evs-leave">' + App.icon('car', 28) + '<div><b>Leave by ' + App.fmt.time(App.leaveBy(e)) + '</b><span>' + e.travel + ' min drive in current traffic</span></div></div>' : '') +
+      (e.loc ? '<div class="evs-row">' + App.icon('pin', 28) + '<div><b>' + App.esc(e.loc) + '</b><span>Tap to send directions to phone</span></div></div>' : '') +
+      '<div class="evs-row">' + App.icon('person', 28) + '<div class="evs-people">' + (fam ? D.people : e.people.map(App.person)).map(function (x) {
+        return '<span class="chip" style="' + App.pstyle(x) + '">' + App.avatar(x, 32) + x.name + '</span>';
+      }).join('') + '</div></div>' +
+      (e.notes ? '<div class="evs-notes serif">“' + App.esc(e.notes) + '”</div>' : '') +
+      '</div></div>', { cls: 'sheet--event' });
+  };
+
   // ------------------------------------------------------------ modes: day / ambient / night
   App.setMode = function (m) {
     var stage = $('#stage');
@@ -328,7 +346,7 @@
       $('#railClock').innerHTML = '<b>' + App.fmt.time(n, false) + '</b><span>' + App.fmt.ampm(n) + '</span>';
       App.emit('minute', n);
     }
-    onIdleTick();
+    if ($('#ambient')) onIdleTick();
   }
 
   // ------------------------------------------------------------ boot
@@ -347,13 +365,15 @@
       if (b && e.detail === 0) App.go(b.dataset.go);
     });
     document.addEventListener('pointerdown', App.resetIdle, true);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') App.closeSheet();
+    });
     window.addEventListener('hashchange', function () { App.go(location.hash.slice(1)); });
     App.go(location.hash.slice(1) || 'home');
     tick();
     setInterval(tick, 1000);
     App.emit('ready');
     refreshStale(1500);
-    setTimeout(function () { App.toast('Tip: press and hold the <b>clock</b> in the sidebar for demo controls', { ms: 6000, icon: 'bolt' }); }, 1200);
   };
   document.addEventListener('DOMContentLoaded', function () { App.start(); });
 })();

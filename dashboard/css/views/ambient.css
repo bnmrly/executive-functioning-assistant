@@ -1,3 +1,4 @@
+/* UNUSED */
 /* Ambient (idle photo frame) */
 .ambient { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 65; background: #000; display: none; color: #fff; cursor: pointer; }
 .stage[data-mode="ambient"] .ambient { display: block; }

@@ -1,3 +1,4 @@
+// UNUSED
 // Alerts (takeovers, banners, notices) + the hidden demo drawer.
 (function () {
   'use strict';

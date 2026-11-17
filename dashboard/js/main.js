@@ -7,6 +7,7 @@ import './slideshow.js';
 import './views/home.js';
 // UNUSED: import './views/calendar.js';
 // UNUSED: import './views/tasks.js';
+import './views/panels.js';
 // UNUSED: import './views/shopping.js';
 // UNUSED: import './views/photos.js';
 // UNUSED: import './views/control.js';

@@ -28,6 +28,9 @@
   <div class="stage" id="stage" data-mode="day">
     <nav class="rail" id="rail" aria-label="Sections">
       <button class="rail-item" data-go="home"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span>Today</span></button>
+      <button class="rail-item" data-go="morning"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 2 2 4-4M3 13l2 2 4-4m-6 9 2 2 4-4M12 6h9m-9 7h9m-9 7h9"/></svg><span>Morning</span></button>
+      <button class="rail-item" data-go="evening"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 2 2 4-4M3 13l2 2 4-4m-6 9 2 2 4-4M12 6h9m-9 7h9m-9 7h9"/></svg><span>Evening</span></button>
+      <button class="rail-item" data-go="music"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><ellipse cx="6" cy="18" rx="3" ry="2"/><ellipse cx="18" cy="16" rx="3" ry="2"/></svg><span>Music</span></button>
       <!-- UNUSED: demo sidebar tabs
       <button class="rail-item" data-go="calendar"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Calendar</span></button>
       <button class="rail-item" data-go="tasks"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7.5 12l3 3 6-6"/></svg><span>Chores</span></button>
@@ -41,6 +44,23 @@
 
     <main class="views">
       <section class="view" id="view-home" data-view="home"></section>
+      <section class="view view--bleed" id="view-morning" data-view="morning" aria-label="Morning Checklist">
+        <template>
+          <iframe class="checklist-frame" title="Morning Checklist" src="./checklist/index.html?routine=morning" allow="fullscreen"></iframe>
+        </template>
+      </section>
+      <section class="view view--bleed" id="view-evening" data-view="evening" aria-label="Evening Checklist">
+        <template>
+          <iframe class="checklist-frame" title="Evening Checklist" src="./checklist/index.html?routine=evening" allow="fullscreen"></iframe>
+        </template>
+      </section>
+      <section class="view" id="view-music" data-view="music" aria-label="Music">
+        <template>
+          <div class="music-panel">
+            <a class="btn btn--solid music-link" href="https://open.spotify.com/playlist/4Q6ORWOWhVMXXuLRhDNCVd" target="_blank" rel="noopener noreferrer">Open Beth time in Spotify</a>
+          </div>
+        </template>
+      </section>
       <!-- UNUSED: demo view containers
       <section class="view" id="view-calendar" data-view="calendar"></section>
       <section class="view" id="view-tasks" data-view="tasks"></section>

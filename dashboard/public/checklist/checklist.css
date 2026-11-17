@@ -1,0 +1,140 @@
+:root {
+  color-scheme: light;
+  font-family: "Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color: var(--checklist-text);
+  background: var(--checklist-page);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { font: inherit; color: inherit; touch-action: manipulation; }
+button:focus-visible { outline: 3px solid var(--checklist-focus); outline-offset: 4px; }
+
+main { max-width: 860px; margin: auto; padding: 36px 28px 28px; }
+header, footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.3rem); line-height: 1.06; }
+footer [role="status"]:empty { display: none; }
+.control {
+  min-height: 48px;
+  padding: 8px 16px;
+  background: var(--checklist-button);
+  border: 2px solid var(--checklist-button-border);
+  border-radius: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.progress-panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 14px;
+  padding: 10px 16px;
+  background: var(--progress-panel);
+  border-radius: 18px;
+}
+.progress-copy { display: grid; gap: 4px; color: var(--progress-text); font-weight: 800; }
+.progress-ring {
+  --sweep: 0%;
+  --ring-color: var(--progress-start);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring-color) var(--sweep), var(--progress-track) 0);
+  font-weight: 800;
+}
+.progress-ring[data-level="half"] { --ring-color: var(--progress-half); }
+.progress-ring[data-level="done"] { --ring-color: var(--progress-done); }
+.progress-ring span {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--checklist-card);
+}
+
+.tasks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+.tasks li { display: flex; }
+.water { --accent: var(--task-teal); --tint: var(--task-teal-light); }
+.teeth { --accent: var(--task-pink); --tint: var(--task-pink-light); }
+.bag { --accent: var(--task-gold); --tint: var(--task-gold-light); }
+.task {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 6px 12px;
+  background: var(--checklist-card);
+  border: 2px solid var(--checklist-card-border);
+  border-radius: 18px;
+  text-align: left;
+  font-size: clamp(1rem, 2.6vw, 1.25rem);
+  font-weight: 750;
+  cursor: pointer;
+}
+.task[aria-pressed="true"] { background: var(--tint); border-color: var(--accent); }
+.check {
+  flex: 0 0 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 2px solid var(--accent);
+  color: var(--checklist-check);
+}
+.task[aria-pressed="true"] .check { background: var(--accent); }
+.task[aria-pressed="true"] .check::after {
+  content: "";
+  width: 8px;
+  height: 15px;
+  border: solid var(--checklist-check);
+  border-width: 0 3px 3px 0;
+  transform: translateY(-2px) rotate(45deg);
+}
+.particle {
+  position: absolute;
+  top: 50%;
+  left: 28px;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  pointer-events: none;
+  background: var(--particle-color);
+  animation: scatter 580ms ease-out both;
+}
+.is-celebrating .check { animation: pop 360ms ease-out; }
+@keyframes scatter {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(.6); }
+  to { opacity: 0; transform: translate(var(--x), var(--y)) rotate(190deg) scale(.8); }
+}
+@keyframes pop {
+  45% { transform: scale(1.23) rotate(-8deg); }
+}
+@media (max-width: 520px), (max-height: 570px) {
+  main { padding: 20px 18px; }
+  .progress-panel { margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .particle { display: none; }
+  .is-celebrating .check { animation: none; }
+}

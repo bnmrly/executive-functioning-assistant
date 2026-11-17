@@ -170,6 +170,7 @@
   }
   App.go = function (name, opts) {
     opts = opts || {};
+    if (name === 'todos') name = 'morning';
     if (!App.views[name]) name = 'home';
     if (App.current && App.current !== name && App.views[App.current].hide) App.views[App.current].hide();
     App.$$('.view').forEach(function (v) { v.classList.toggle('is-active', v.dataset.view === name); });
@@ -311,6 +312,11 @@
   App.idle = { home: 60, ambient: 120 };
   var idleSec = 0;
   function onIdleTick() {
+    // Leave the checklist visible while someone is away doing a task.
+    if (App.current === 'morning' || App.current === 'evening' || App.current === 'music') {
+      idleSec = 0;
+      return;
+    }
     idleSec++;
     var blocked = $('#takeover').classList.contains('is-open');
     if (App.mode === 'nightdash' && idleSec >= 20) { App.setMode('night'); return; }

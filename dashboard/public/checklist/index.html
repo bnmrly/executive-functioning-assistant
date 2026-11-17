@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5ed">
+  <title>Today's checklist</title>
+  <link rel="stylesheet" href="../palette.css">
+  <link rel="stylesheet" href="checklist.css?v=9">
+  <script defer src="checklist.js?v=6"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Today’s checklist</h1>
+      <button id="fullscreen" class="control" type="button">Full screen</button>
+    </header>
+
+    <section class="progress-panel" aria-label="Checklist progress">
+      <div class="progress-ring" id="progress-ring" aria-hidden="true"><span id="progress-percent">0%</span></div>
+      <div class="progress-copy">
+        <span id="progress-label" role="status">0 of 13 complete</span>
+        <span id="all-done" hidden>All done!</span>
+      </div>
+    </section>
+
+    <ul class="tasks">
+      <li><button class="task water" type="button" data-task="water" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Drink a glass of water</span>
+      </button></li>
+      <li><button class="task teeth" type="button" data-task="teeth" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Brush my teeth</span>
+      </button></li>
+      <li><button class="task bag" type="button" data-task="bag" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Pack my bag</span>
+      </button></li>
+      <li><button class="task water" type="button" data-task="breakfast" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Eat breakfast</span>
+      </button></li>
+      <li><button class="task teeth" type="button" data-task="bed" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Make my bed</span>
+      </button></li>
+      <li><button class="task bag" type="button" data-task="clothes" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Get dressed</span>
+      </button></li>
+      <li><button class="task water" type="button" data-task="shoes" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Put on my shoes</span>
+      </button></li>
+      <li><button class="task teeth" type="button" data-task="bottle" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Fill my water bottle</span>
+      </button></li>
+      <li><button class="task bag" type="button" data-task="lunch" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Pack my lunch</span>
+      </button></li>
+      <li><button class="task water" type="button" data-task="coat" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Grab my coat</span>
+      </button></li>
+      <li><button class="task teeth" type="button" data-task="keys" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Check for my keys</span>
+      </button></li>
+      <li><button class="task bag" type="button" data-task="plan" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Check today’s plan</span>
+      </button></li>
+      <li><button class="task water" type="button" data-task="light" aria-pressed="false">
+        <span class="check" aria-hidden="true"></span><span>Turn off my light</span>
+      </button></li>
+    </ul>
+
+    <footer>
+      <span id="storage-status" role="status"></span>
+      <span id="fullscreen-status" role="status"></span>
+    </footer>
+  </main>
+</body>
+</html>

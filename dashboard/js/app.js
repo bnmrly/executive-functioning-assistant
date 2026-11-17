@@ -345,8 +345,9 @@
   function tick() {
     var n = App.now();
     App.emit('second', n);
-    if (n.getMinutes() !== lastMin) {
-      lastMin = n.getMinutes();
+    var minute = Math.floor(+n / 60000);
+    if (minute !== lastMin) {
+      lastMin = minute;
       $('#railClock').innerHTML = '<b>' + App.fmt.time(n, false) + '</b><span>' + App.fmt.ampm(n) + '</span>';
       App.emit('minute', n);
     }
@@ -355,7 +356,6 @@
 
   // ------------------------------------------------------------ boot
   App.start = function () {
-    App.setTime(15, 18); // demo default: a busy weekday afternoon
     fit();
     window.addEventListener('resize', fit);
     // Switch tabs the instant a finger lands (pointerdown), not on release. Keyboard "clicks"

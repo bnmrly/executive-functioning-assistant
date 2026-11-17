@@ -330,10 +330,14 @@
   var STAGE_H = 800, STAGE_MIN_W = 1280;
   function fit() {
     var stage = $('#stage');
-    var w = Math.max(STAGE_MIN_W, Math.round(STAGE_H * window.innerWidth / window.innerHeight));
+    var vw = window.innerWidth, vh = window.innerHeight;
+    if (!vw || !vh) return;
+    var w = Math.max(STAGE_MIN_W, Math.round(STAGE_H * vw / vh));
     stage.style.setProperty('--stage-w', w + 'px');
-    var s = Math.min(window.innerWidth / w, window.innerHeight / STAGE_H);
-    stage.style.transform = Math.abs(s - 1) < 0.01 ? '' : 'scale(' + s + ')';
+    var s = Math.min(vw / w, vh / STAGE_H);
+    stage.style.left = ((vw - w * s) / 2) + 'px';
+    stage.style.top = ((vh - STAGE_H * s) / 2) + 'px';
+    stage.style.transform = s === 1 ? '' : 'scale(' + s + ')';
   }
 
   // ------------------------------------------------------------ clock tick

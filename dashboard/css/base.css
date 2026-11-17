@@ -39,11 +39,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* ---------------------------------------------------------------- stage (800 tall; width set by fit() in app.js, min 1280) */
 .stage {
-  position: absolute;
-  left: 50%; top: 50%;
+  position: fixed;
+  left: 0; top: 0;
   width: var(--stage-w, 1280px); height: 800px;
-  margin: -400px 0 0 calc(var(--stage-w, 1280px) / -2);
-  transform-origin: 50% 50%;
+  transform-origin: top left;
   background: var(--paper);
   overflow: hidden;
   display: grid;

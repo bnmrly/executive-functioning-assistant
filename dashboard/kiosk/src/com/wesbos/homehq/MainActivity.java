@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
   private final float[] exitY = new float[2];
   private boolean exitArmed;
   private String retryUrl;
-  private String mainUrl;
+  private volatile String mainUrl;
   private boolean pageFailed;
   // A retry is queued: keep the offline screen up until it runs, even if the failed load "finishes".
   private boolean retryPending;
@@ -206,7 +206,7 @@ public class MainActivity extends Activity {
     web.setWebViewClient(new WebViewClient() {
       @Override
       public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
-        return localAsset(req.getUrl());
+        return localAsset(req);
       }
 
       @Override
@@ -330,7 +330,11 @@ public class MainActivity extends Activity {
     @SuppressWarnings("deprecation")
     IntentFilter connectivity = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
     connectivity.addAction(Intent.ACTION_TIME_CHANGED); // network time arrived after a power cut
-    registerReceiver(networkChange, connectivity);
+    if (android.os.Build.VERSION.SDK_INT >= 33) {
+      registerReceiver(networkChange, connectivity, android.content.Context.RECEIVER_NOT_EXPORTED);
+    } else {
+      registerReceiver(networkChange, connectivity);
+    }
   }
 
   @Override
@@ -430,7 +434,13 @@ public class MainActivity extends Activity {
   }
 
   private String savedUrl() {
-    return getSharedPreferences(PREFS, MODE_PRIVATE).getString(PREF_URL, DEFAULT_URL);
+    String defaultUrl = DEFAULT_URL;
+    try (java.io.InputStream bundledPage = getAssets().open("site/index.html")) {
+      defaultUrl = "http://127.0.0.1:8765/";
+    } catch (java.io.IOException ignored) {
+      // Builds without a bundled page use the hosted dashboard.
+    }
+    return getSharedPreferences(PREFS, MODE_PRIVATE).getString(PREF_URL, defaultUrl);
   }
 
   /**
@@ -438,7 +448,8 @@ public class MainActivity extends Activity {
    * KIOSK_SITE). Any other URL returns null and goes to the network as usual. Nothing listens on
    * the port; only this WebView sees these responses. Paths ending in / get index.html.
    */
-  private WebResourceResponse localAsset(Uri u) {
+  private WebResourceResponse localAsset(WebResourceRequest request) {
+    Uri u = request.getUrl();
     if (u == null || !"http".equalsIgnoreCase(u.getScheme()) || !LOCAL_HOST.equals(u.getHost())
         || u.getPort() != LOCAL_PORT) return null;
     String path = u.getPath();
@@ -446,6 +457,32 @@ public class MainActivity extends Activity {
     if (path.endsWith("/")) path += "index.html";
     Map<String, String> headers = new HashMap<>();
     headers.put("Cache-Control", "no-cache");
+    if (path.startsWith("/api/calendar")) {
+      // Expose device data only while our bundled dashboard is the top-level page.
+      Uri page = Uri.parse(mainUrl == null ? "" : mainUrl);
+      if (!"http".equals(page.getScheme()) || !LOCAL_HOST.equals(page.getHost())
+          || page.getPort() != LOCAL_PORT || request.isForMainFrame()) {
+        return new WebResourceResponse("text/plain", "utf-8", 403, "Forbidden", headers, null);
+      }
+      if ("/api/calendar".equals(path) && "GET".equals(request.getMethod())) {
+        return CalendarEvents.response(this);
+      }
+      if ("/api/calendar/permission".equals(path) && "POST".equals(request.getMethod())) {
+        String origin = request.getRequestHeaders().get("Origin");
+        if (origin == null) origin = request.getRequestHeaders().get("origin");
+        if (!"http://127.0.0.1:8765".equals(origin)) {
+          return new WebResourceResponse("text/plain", "utf-8", 403, "Forbidden", headers, null);
+        }
+        runOnUiThread(() -> {
+          if (resumed && checkSelfPermission(android.Manifest.permission.READ_CALENDAR)
+              != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {android.Manifest.permission.READ_CALENDAR}, 41);
+          }
+        });
+        return new WebResourceResponse("text/plain", "utf-8", 200, "OK", headers, null);
+      }
+      return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", headers, null);
+    }
     if (path.contains("..") || path.contains("//")) {
       return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", headers, null);
     }
@@ -455,6 +492,14 @@ public class MainActivity extends Activity {
     } catch (IOException e) {
       Log.w(TAG, "No bundled file for " + path);
       return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", headers, null);
+    }
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+    super.onRequestPermissionsResult(requestCode, permissions, results);
+    if (requestCode == 41 && web != null) {
+      web.evaluateJavascript("window.dispatchEvent(new Event('beth-calendar-permission'))", null);
     }
   }
 

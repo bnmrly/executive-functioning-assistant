@@ -341,7 +341,6 @@ adb install -r kiosk/build/homehq.apk
 The kiosk loads the existing hosted dashboard over the frame's Wi-Fi. A USB
 connection is only needed for installation or diagnostics, not normal use.
 
-The kiosk targets Android 9 (SDK 28); the minimum is still Android 6 (SDK 23). Android 15
-refuses to install targets below 24 (`INSTALL_FAILED_DEPRECATED_SDK_VERSION`), and Android 14
-and later show a "built for an older version of Android" dialog on the first launch for targets
-below 28.
+The kiosk targets Android 15 (SDK 35) and supports Android 6 (SDK 23) and later.
+Bundled builds open their packaged dashboard automatically on a fresh installation.
+An existing saved dashboard URL continues to take precedence.

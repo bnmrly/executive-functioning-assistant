@@ -32,9 +32,9 @@ if ($env:KIOSK_SITE) {
 }
 
 Run "$bt\aapt2.exe" @('compile', '--dir', 'res', '-o', 'build\res.zip')
-# Target 28: see build.sh.
+# Target Android 15 protections with Android 6 minimum support.
 Run "$bt\aapt2.exe" (@('link', '-o', 'build\base.apk', '-I', $jar, '--manifest', 'AndroidManifest.xml') + $assets + @('build\res.zip',
-  '--java', 'build\gen', '--min-sdk-version', '23', '--target-sdk-version', '28', '--version-code', '3', '--version-name', '1.2'))
+  '--java', 'build\gen', '--min-sdk-version', '23', '--target-sdk-version', '35', '--version-code', '4', '--version-name', '1.3'))
 
 $src = @(Get-ChildItem src -Recurse -Filter *.java | % FullName) + @('build\gen\com\wesbos\homehq\R.java')
 Run 'javac' (@('-nowarn', '-source', '8', '-target', '8', '-classpath', $jar, '-d', 'build\classes') + $src)

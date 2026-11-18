@@ -3,6 +3,7 @@
     package="com.wesbos.homehq">
 
   <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.READ_CALENDAR" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <!-- Optional; only used if granted with adb (see kiosk README). -->
   <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
@@ -10,8 +11,15 @@
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.MAIN" />
+      <category android:name="android.intent.category.HOME" />
+    </intent>
+  </queries>
+
   <application
-      android:label="Home HQ"
+      android:label="Beth"
       android:icon="@mipmap/ic_launcher"
       android:hardwareAccelerated="true"
       android:usesCleartextTraffic="true"
@@ -28,7 +36,7 @@
           android:resource="@xml/navigation_service" />
     </service>
     <activity
-        android:name=".MainActivity"
+        android:name=".MainActivity" android:exported="true"
         android:launchMode="singleTask"
         android:screenOrientation="sensorLandscape"
         android:configChanges="orientation|screenSize|keyboardHidden|keyboard">

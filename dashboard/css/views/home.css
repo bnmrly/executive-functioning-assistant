@@ -1,4 +1,4 @@
-/* Today: three panels above two placeholders. */
+/* Today: clock and weather above the daily plan and a change for today. */
 .home {
   height: 100%;
   display: grid;
@@ -39,5 +39,21 @@
 .h-wx-source:hover, .h-wx-source:focus-visible { color: var(--ink); }
 .h-wx-status:not(:empty) { margin-top: 4px; font-size: 14px; color: var(--mute); }
 
-.h-placeholder { background: var(--paper-2); border: 1px dashed var(--line); border-radius: var(--r); }
 .h-lower { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; }
+
+.h-lower { min-height: 0; }
+.h-agenda, .h-different { min-width: 0; overflow-y: auto; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r); padding: 24px; }
+.h-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.h-lower h2 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.15; }
+.h-calendar-refresh, .h-calendar-allow { min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); font: inherit; cursor: pointer; }
+.h-calendar-refresh { font-size: 16px; }
+.h-agenda-section { margin-top: 24px; }
+.h-agenda-section + .h-agenda-section { padding-top: 20px; border-top: 1px solid var(--line); }
+.h-agenda-section h3 { margin: 0 0 12px; color: var(--mute); font-size: 18px; text-transform: uppercase; letter-spacing: .06em; }
+.h-agenda-section ol { list-style: none; padding: 0; margin: 0; }
+.h-agenda-section li { display: grid; grid-template-columns: 105px minmax(0, 1fr); gap: 14px; align-items: baseline; padding: 10px 0; }
+.h-event-time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.h-event-title { font-size: 28px; line-height: 1.2; font-weight: 700; overflow-wrap: anywhere; }
+.h-agenda-empty, .h-agenda-status { margin: 12px 0; color: var(--mute); font-size: 20px; line-height: 1.4; }
+.h-different-event { margin: 28px 0 0; font-family: var(--serif); font-size: 42px; line-height: 1.15; }
+.h-example-note { margin: 16px 0 0; color: var(--mute); font-size: 16px; }

@@ -139,6 +139,79 @@
     }
   }
 
+  let calendarBusy = false;
+  let calendarNextRefresh = 0;
+  let calendarDay = '';
+
+  function paintCalendar(data) {
+    const panel = view.querySelector('.h-agenda-content');
+    const heading = view.querySelector('.h-agenda-title');
+    heading.textContent = 'Today’s plan';
+    if (data.status !== 'ok') {
+      const messages = {
+        permission_required: 'Allow calendar access to show Beth’s plan.',
+        calendar_missing: 'Beth’s Calendar is not on this tablet yet. Open Google Calendar and enable its sync.',
+        sync_disabled: 'Open Google Calendar and turn on sync and visibility for Beth’s Calendar.',
+        multiple_calendars: 'More than one Beth calendar was found. Give the calendar you want to use the name Beth’s Calendar.',
+        unavailable: 'The calendar could not be read. Try refreshing it.',
+        browser: 'Calendar events appear in the installed Beth tablet app.',
+      };
+      panel.innerHTML = '<p class="h-agenda-status" role="status">' + App.esc(messages[data.status] || messages.unavailable) + '</p>' +
+        (data.status === 'permission_required' ? '<button class="h-calendar-allow" type="button">Allow calendar access</button>' : '');
+      return;
+    }
+    const today = new Date(data.dayStart);
+    const tomorrow = App.addDays(today, 1);
+    const afterTomorrow = App.addDays(today, 2);
+    const onDay = (event, start, end) => event.start < +end && event.end > +start;
+    let events = data.events.filter(event => onDay(event, today, tomorrow));
+    let day = today;
+    if (!events.length) {
+      const upcoming = data.events.filter(event => onDay(event, tomorrow, afterTomorrow));
+      if (upcoming.length) {
+        events = upcoming;
+        day = tomorrow;
+        heading.textContent = 'Tomorrow’s plan';
+      }
+    }
+    events.sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.start - b.start);
+    const evening = event => !event.allDay && new Date(Math.max(event.start, +day)).getHours() >= 17;
+    function section(title, list) {
+      return '<section class="h-agenda-section"><h3>' + title + '</h3>' +
+        (list.length ? '<ol>' + list.map(event => {
+          const time = event.allDay ? 'All day' : event.start < +day ? 'Continues' : App.fmt.hour(new Date(event.start));
+          return '<li><span class="h-event-time">' + App.esc(time) + '</span><span class="h-event-title">' + App.esc(event.title) + '</span></li>';
+        }).join('') + '</ol>' : '<p class="h-agenda-empty">Nothing planned</p>') + '</section>';
+    }
+    panel.innerHTML = section('Daytime', events.filter(event => !evening(event))) +
+      section('Evening', events.filter(evening));
+  }
+
+  async function refreshCalendar(force = false) {
+    const day = new Date().toDateString();
+    if (calendarBusy || (!force && calendarDay === day && Date.now() < calendarNextRefresh)) return;
+    calendarBusy = true;
+    calendarDay = day;
+    calendarNextRefresh = Date.now() + 60000;
+    try {
+      if (location.hostname !== '127.0.0.1' || location.port !== '8765') {
+        paintCalendar({ status: 'browser' });
+        return;
+      }
+      const response = await fetch('/api/calendar', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Calendar unavailable');
+      const data = await response.json();
+      if (data.status === 'ok' && (!Array.isArray(data.events) || !Number.isFinite(data.dayStart))) {
+        throw new Error('Invalid calendar response');
+      }
+      paintCalendar(data);
+    } catch {
+      paintCalendar({ status: 'unavailable' });
+    } finally {
+      calendarBusy = false;
+    }
+  }
+
   function mount(el) {
     el.innerHTML = '<div class="home">' +
       '<div class="h-clock"></div>' +
@@ -150,8 +223,25 @@
       '<section class="h-weather h-wx-tomorrow" aria-label="Chorlton weather tomorrow">' +
         '<div class="label">Tomorrow</div><div class="h-wx-data"></div>' +
       '</section>' +
-      '<div class="h-lower" aria-hidden="true">' +
-        '<div class="h-placeholder"></div><div class="h-placeholder"></div></div></div>';
+      '<div class="h-lower">' +
+        '<section class="h-agenda" aria-labelledby="h-agenda-title">' +
+          '<header class="h-panel-header"><h2 class="h-agenda-title" id="h-agenda-title">Today’s plan</h2>' +
+            '<button class="h-calendar-refresh" type="button" aria-label="Refresh calendar">Refresh</button></header>' +
+          '<div class="h-agenda-content"><p class="h-agenda-status" role="status">Loading calendar…</p></div></section>' +
+        '<section class="h-different" aria-labelledby="h-different-title">' +
+          '<h2 id="h-different-title">Different today</h2><p class="h-different-event">Grandad is visiting</p>' +
+          '<p class="h-example-note">Example</p></section></div></div>';
+    el.querySelector('.h-calendar-refresh').addEventListener('click', () => void refreshCalendar(true));
+    el.querySelector('.h-agenda-content').addEventListener('click', async event => {
+      if (!event.target.closest('.h-calendar-allow')) return;
+      const button = event.target.closest('button');
+      button.disabled = true;
+      try {
+        await fetch('/api/calendar/permission', { method: 'POST' });
+      } catch {
+        button.disabled = false;
+      }
+    });
   }
 
   function show(el) {
@@ -160,9 +250,14 @@
     const now = new Date();
     renderClock(now);
     paintForecast(now);
-    if (App.current === 'home') void refreshForecast();
+    if (App.current === 'home') {
+      void refreshForecast();
+      void refreshCalendar();
+    }
   }
 
+  window.addEventListener('beth-calendar-permission', () => { if (view) void refreshCalendar(true); });
+  window.addEventListener('focus', () => { if (App.current === 'home' && view) void refreshCalendar(true); });
   App.register('home', { show, resume: show });
   App.on('minute', () => {
     if (App.current === 'home' && view) show(view);

@@ -5,6 +5,7 @@ import './app.js';
 // UNUSED: import './system.js';
 import './slideshow.js';
 import './views/home.js';
+import './views/live-calendar.js';
 // UNUSED: import './views/calendar.js';
 // UNUSED: import './views/tasks.js';
 import './views/panels.js';

@@ -465,7 +465,7 @@ public class MainActivity extends Activity {
         return new WebResourceResponse("text/plain", "utf-8", 403, "Forbidden", headers, null);
       }
       if ("/api/calendar".equals(path) && "GET".equals(request.getMethod())) {
-        return CalendarEvents.response(this);
+        return CalendarEvents.response(this, u);
       }
       if ("/api/calendar/permission".equals(path) && "POST".equals(request.getMethod())) {
         String origin = request.getRequestHeaders().get("Origin");

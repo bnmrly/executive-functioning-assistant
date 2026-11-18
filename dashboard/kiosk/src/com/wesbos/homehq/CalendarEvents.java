@@ -21,10 +21,10 @@ import org.json.JSONObject;
 
 /** Reads Beth's synced calendar on WebView's background request thread. */
 final class CalendarEvents {
-  static WebResourceResponse response(Context context) {
+  static WebResourceResponse response(Context context, Uri request) {
     String body;
     try {
-      body = read(context).toString();
+      body = read(context, request).toString();
     } catch (SecurityException e) {
       body = "{\"status\":\"permission_required\"}";
     } catch (RuntimeException | JSONException e) {
@@ -37,7 +37,7 @@ final class CalendarEvents {
         new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)));
   }
 
-  private static JSONObject read(Context context) throws JSONException {
+  private static JSONObject read(Context context, Uri request) throws JSONException {
     JSONObject result = new JSONObject();
     if (context.checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
       return result.put("status", "permission_required");
@@ -61,8 +61,30 @@ final class CalendarEvents {
     day.set(Calendar.MINUTE, 0);
     day.set(Calendar.SECOND, 0);
     day.set(Calendar.MILLISECOND, 0);
+    String requestedStart = request.getQueryParameter("start");
+    String requestedDays = request.getQueryParameter("days");
+    int days = 2;
+    if (requestedStart != null) {
+      java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT);
+      format.setLenient(false);
+      java.text.ParsePosition position = new java.text.ParsePosition(0);
+      java.util.Date date = format.parse(requestedStart, position);
+      if (date == null || position.getIndex() != requestedStart.length()
+          || !format.format(date).equals(requestedStart)) {
+        return result.put("status", "invalid_range");
+      }
+      day.setTime(date);
+    }
+    if (requestedDays != null) {
+      try {
+        days = Integer.parseInt(requestedDays);
+      } catch (NumberFormatException e) {
+        return result.put("status", "invalid_range");
+      }
+      if (days < 1 || days > 31) return result.put("status", "invalid_range");
+    }
     long start = day.getTimeInMillis();
-    day.add(Calendar.DATE, 2);
+    day.add(Calendar.DATE, days);
     long end = day.getTimeInMillis();
     Uri.Builder range = CalendarContract.Instances.CONTENT_URI.buildUpon();
     // All-day instances use UTC dates. Include neighbouring UTC days before converting them.

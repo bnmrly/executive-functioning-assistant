@@ -5,6 +5,16 @@ import { defineConfig } from 'vite';
 // #ffffffbf) even though Chrome 106 should support them, and a newer target lets the minifier
 // rewrite transparent/rgba() into that form. Verified on-device with CSS.supports().
 export default defineConfig({
+  plugins: [{
+    name: 'reload-public-files',
+    handleHotUpdate({ file, server }) {
+      // The checklist lives in public/, outside Vite's module graph.
+      if (file.startsWith(server.config.publicDir + '/')) {
+        server.ws.send({ type: 'full-reload', path: '*' });
+        return [];
+      }
+    },
+  }],
   build: {
     target: 'chrome106',
     cssTarget: 'chrome61',

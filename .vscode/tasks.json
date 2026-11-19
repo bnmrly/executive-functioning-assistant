@@ -2,6 +2,16 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Dashboard development server",
+      "type": "process",
+      "command": "npm",
+      "args": ["--prefix", "dashboard", "run", "dev", "--", "--port", "5173", "--strictPort"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
       "label": "Mirror Android tablet",
       "type": "process",
       "command": "/opt/homebrew/bin/scrcpy",

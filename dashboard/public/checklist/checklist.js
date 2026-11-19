@@ -190,7 +190,12 @@ function stopCelebration(button) {
 }
 
 function celebrate(button, finished) {
-  if (routine === "morning" && finished) celebrateFinish();
+  if (routine === "morning" && finished) {
+    clearTimeout(finishStartTimer);
+    finishStartTimer = setTimeout(() => {
+      if (completed.size === tasks.length) celebrateFinish();
+    }, 900);
+  }
   if (reducedMotion.matches) return;
   stopCelebration(button);
   const colors = [
@@ -229,12 +234,15 @@ function celebrate(button, finished) {
 
 let finishCelebration;
 let finishTimer;
-const finishAudio = routine === "morning"
-  ? new Audio(new URL("audio/celebration-cheering.mp3", location.href).href)
-  : null;
+let finishStartTimer;
+const finishAudio =
+  routine === "morning"
+    ? new Audio(new URL("audio/celebration-cheering.mp3", location.href).href)
+    : null;
 if (finishAudio) finishAudio.preload = "auto";
 
 function closeFinishCelebration() {
+  clearTimeout(finishStartTimer);
   clearTimeout(finishTimer);
   finishCelebration?.remove();
   finishCelebration = null;
@@ -429,6 +437,7 @@ for (const button of tasks) {
       if (!finished || routine !== "morning")
         void playChime(finished || sectionFinished);
     } else {
+      if (routine === "morning") closeFinishCelebration();
       stopCelebration(button);
     }
   });

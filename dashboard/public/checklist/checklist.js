@@ -1,3 +1,105 @@
+const routine = new URLSearchParams(location.search).get("routine");
+let celebrationDocument = document;
+const morningSections = [
+  {
+    name: "Toilet",
+    key: "toilet",
+    accent: "water",
+    tasks: [
+      ["toilet", "Go to the toilet"],
+      ["wipe", "Wipe myself"],
+      ["wash-hands", "Wash my hands"],
+      ["dry-hands", "Dry my hands"],
+    ],
+  },
+  {
+    name: "Teeth and face",
+    key: "care",
+    accent: "teeth",
+    tasks: [
+      ["clean-teeth", "Clean my teeth"],
+      ["wash-face", "Wash my face"],
+    ],
+  },
+  {
+    name: "Getting dressed",
+    key: "dressed",
+    accent: "bag",
+    tasks: [
+      ["pants", "Put pants on"],
+      ["socks", "Put socks on"],
+      ["dress-leggings", "Put dress or leggings on"],
+      ["top", "Put top on"],
+      ["cardigan", "Put cardigan on"],
+    ],
+  },
+  {
+    name: "Hair",
+    key: "hair",
+    accent: "teeth",
+    tasks: [["hair", "Get Mummy or Daddy to brush my hair"]],
+  },
+];
+
+if (routine === "morning") {
+  document.documentElement.dataset.routine = "morning";
+  const fonts = document.createElement("link");
+  fonts.rel = "stylesheet";
+  fonts.href =
+    "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Serif:ital@0;1&display=swap";
+  document.head.append(fonts);
+  document.getElementById("fullscreen").remove();
+  document.getElementById("fullscreen-status").remove();
+  const statuses = document.createElement("div");
+  statuses.className = "section-statuses";
+  statuses.setAttribute("role", "status");
+  document.querySelector("header").append(statuses);
+  try {
+    if (window.parent.location.origin === location.origin)
+      celebrationDocument = window.parent.document;
+  } catch {
+    // A standalone checklist can celebrate within its own document.
+  }
+  if (!celebrationDocument.getElementById("routine-celebration-styles")) {
+    const styles = celebrationDocument.createElement("link");
+    styles.id = "routine-celebration-styles";
+    styles.rel = "stylesheet";
+    styles.href = new URL("celebration.css?v=1", location.href).href;
+    celebrationDocument.head.append(styles);
+  }
+  const groups = document.createElement("div");
+  groups.className = "morning-groups";
+  document.querySelector(".tasks").replaceWith(groups);
+  morningSections.forEach((group) => {
+    const section = document.createElement("section");
+    section.className = "morning-group morning-group--" + group.key;
+    const heading = document.createElement("h2");
+    heading.id = "morning-" + group.key;
+    heading.textContent = group.name;
+    section.setAttribute("aria-labelledby", heading.id);
+    const list = document.createElement("ol");
+    list.className = "tasks";
+    group.tasks.forEach(([id, title]) => {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "task " + group.accent;
+      button.dataset.task = id;
+      button.setAttribute("aria-pressed", "false");
+      const check = document.createElement("span");
+      check.className = "check";
+      check.setAttribute("aria-hidden", "true");
+      const label = document.createElement("span");
+      label.textContent = title;
+      button.append(check, label);
+      item.append(button);
+      list.append(item);
+    });
+    section.append(heading, list);
+    groups.append(section);
+  });
+}
+
 const tasks = Array.from(document.querySelectorAll("[data-task]"));
 const fullscreen = document.getElementById("fullscreen");
 const fullscreenStatus = document.getElementById("fullscreen-status");
@@ -6,17 +108,22 @@ const progressPercent = document.getElementById("progress-percent");
 const progressLabel = document.getElementById("progress-label");
 const allDone = document.getElementById("all-done");
 const storageStatus = document.getElementById("storage-status");
-const routine = new URLSearchParams(location.search).get("routine");
-const storageKey = routine === "evening" ? "beth-checklist-evening-v1" : "beth-checklist-v1";
+const storageKey =
+  routine === "morning"
+    ? "beth-checklist-morning-v2"
+    : routine === "evening"
+      ? "beth-checklist-evening-v1"
+      : "beth-checklist-v1";
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-const taskIds = new Set(tasks.map(button => button.dataset.task));
+const taskIds = new Set(tasks.map((button) => button.dataset.task));
 const celebrationTimers = new Map();
 const completed = new Set();
 
 let audio;
 
 if (routine === "morning" || routine === "evening") {
-  const title = routine === "morning" ? "Morning Checklist" : "Evening Checklist";
+  const title =
+    routine === "morning" ? "Morning Checklist" : "Evening Checklist";
   document.title = title;
   document.querySelector("h1").textContent = title;
 }
@@ -35,7 +142,10 @@ try {
 
 function save() {
   try {
-    localStorage.setItem(storageKey, JSON.stringify({ changes: Array.from(completed) }));
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({ changes: Array.from(completed) }),
+    );
     storageStatus.textContent = "";
   } catch {
     storageStatus.textContent = "Progress could not be saved on this device.";
@@ -46,40 +156,229 @@ function render() {
   for (const button of tasks) {
     button.setAttribute("aria-pressed", completed.has(button.dataset.task));
   }
-  const percent = Math.round(completed.size * 100 / tasks.length);
+  const percent = Math.round((completed.size * 100) / tasks.length);
   progressRing.style.setProperty("--sweep", `${percent}%`);
-  progressRing.dataset.level = percent === 100 ? "done" : percent >= 50 ? "half" : "start";
+  progressRing.dataset.level =
+    percent === 100 ? "done" : percent >= 50 ? "half" : "start";
   progressPercent.textContent = `${percent}%`;
   progressLabel.textContent = `${completed.size} of ${tasks.length} complete`;
   allDone.hidden = completed.size !== tasks.length;
+  if (routine === "morning") {
+    const statuses = document.querySelector(".section-statuses");
+    const finishedSections = morningSections.filter((group) =>
+      group.tasks.every(([id]) => completed.has(id)),
+    );
+    const names = finishedSections.map((group) => group.key).join(",");
+    if (statuses.dataset.sections !== names) {
+      statuses.dataset.sections = names;
+      statuses.replaceChildren(
+        ...finishedSections.map((group) => {
+          const badge = document.createElement("span");
+          badge.textContent = group.name + " complete";
+          return badge;
+        }),
+      );
+    }
+  }
 }
 
 function stopCelebration(button) {
   clearTimeout(celebrationTimers.get(button));
   celebrationTimers.delete(button);
   button.classList.remove("is-celebrating");
-  button.querySelectorAll(".particle").forEach(particle => particle.remove());
+  button.querySelectorAll(".particle").forEach((particle) => particle.remove());
 }
 
 function celebrate(button, finished) {
+  if (routine === "morning" && finished) celebrateFinish();
   if (reducedMotion.matches) return;
   stopCelebration(button);
-  const colors = ["--celebration-purple", "--celebration-pink", "--celebration-teal", "--celebration-gold"];
-  const count = finished ? 16 : 8;
+  const colors = [
+    "--celebration-purple",
+    "--celebration-pink",
+    "--celebration-teal",
+    "--celebration-gold",
+  ];
+  const count =
+    routine === "morning" ? (finished ? 32 : 18) : finished ? 16 : 8;
 
   for (let i = 0; i < count; i++) {
-    const angle = i * 2 * Math.PI / count;
-    const distance = i % 2 ? 32 : 52;
+    const angle = (i * 2 * Math.PI) / count;
+    const distance =
+      routine === "morning" ? (i % 2 ? 55 : 90) : i % 2 ? 32 : 52;
     const particle = document.createElement("span");
     particle.className = "particle";
     particle.setAttribute("aria-hidden", "true");
-    particle.style.setProperty("--particle-color", `var(${colors[i % colors.length]})`);
+    particle.style.setProperty(
+      "--particle-color",
+      `var(${colors[i % colors.length]})`,
+    );
     particle.style.setProperty("--x", `${Math.cos(angle) * distance}px`);
     particle.style.setProperty("--y", `${Math.sin(angle) * distance}px`);
     button.append(particle);
   }
   button.classList.add("is-celebrating");
-  celebrationTimers.set(button, setTimeout(() => stopCelebration(button), 600));
+  celebrationTimers.set(
+    button,
+    setTimeout(
+      () => stopCelebration(button),
+      routine === "morning" ? 1000 : 600,
+    ),
+  );
+}
+
+let finishCelebration;
+let finishTimer;
+const finishAudio = routine === "morning"
+  ? new Audio(new URL("audio/celebration-cheering.mp3", location.href).href)
+  : null;
+if (finishAudio) finishAudio.preload = "auto";
+
+function closeFinishCelebration() {
+  clearTimeout(finishTimer);
+  finishCelebration?.remove();
+  finishCelebration = null;
+  if (finishAudio) {
+    finishAudio.pause();
+    finishAudio.currentTime = 0;
+  }
+}
+
+function celebrateFinish() {
+  closeFinishCelebration();
+  clearTimeout(sectionCelebrationTimer);
+  sectionCelebration?.remove();
+  sectionCelebration = null;
+  finishCelebration = celebrationDocument.createElement("div");
+  finishCelebration.className = "routine-celebration";
+  const message = celebrationDocument.createElement("div");
+  message.className = "routine-celebration-copy";
+  const emoji = celebrationDocument.createElement("div");
+  emoji.className = "routine-celebration-emoji";
+  emoji.textContent = "🎉";
+  emoji.setAttribute("aria-hidden", "true");
+  const title = celebrationDocument.createElement("h2");
+  title.setAttribute("role", "status");
+  title.textContent = "WELL DONE, BETH!";
+  const cheer = celebrationDocument.createElement("p");
+  cheer.textContent = "You smashed it!";
+  const dismiss = celebrationDocument.createElement("button");
+  dismiss.type = "button";
+  dismiss.className = "routine-celebration-dismiss";
+  dismiss.textContent = "Back to checklist";
+  dismiss.addEventListener("click", closeFinishCelebration);
+  message.append(emoji, title, cheer, dismiss);
+  finishCelebration.append(message);
+  if (!reducedMotion.matches) {
+    const colors = [
+      "--celebration-purple",
+      "--celebration-pink",
+      "--celebration-teal",
+      "--celebration-gold",
+    ];
+    const positions = [
+      [15, 20],
+      [85, 20],
+      [25, 75],
+      [75, 75],
+      [12, 50],
+      [88, 50],
+      [45, 12],
+      [55, 88],
+    ];
+    positions.forEach(([left, top], index) => {
+      const burst = celebrationDocument.createElement("div");
+      burst.className = "routine-firework";
+      burst.setAttribute("aria-hidden", "true");
+      burst.style.left = left + "%";
+      burst.style.top = top + "%";
+      burst.style.setProperty("--delay", index * 220 + "ms");
+      for (let i = 0; i < 28; i++) {
+        const spark = celebrationDocument.createElement("span");
+        const angle = (i * 2 * Math.PI) / 28;
+        spark.className = "routine-spark";
+        spark.style.color = "var(" + colors[i % colors.length] + ")";
+        spark.style.setProperty("--x", Math.cos(angle) * 200 + "px");
+        spark.style.setProperty("--y", Math.sin(angle) * 200 + "px");
+        burst.append(spark);
+      }
+      finishCelebration.append(burst);
+    });
+    for (let i = 0; i < 90; i++) {
+      const confetti = celebrationDocument.createElement("span");
+      confetti.className = "routine-confetti";
+      confetti.setAttribute("aria-hidden", "true");
+      confetti.style.background = "var(" + colors[i % colors.length] + ")";
+      confetti.style.left = Math.random() * 100 + "%";
+      confetti.style.setProperty("--delay", Math.random() * 2200 + "ms");
+      confetti.style.setProperty("--drift", (Math.random() - 0.5) * 250 + "px");
+      finishCelebration.append(confetti);
+    }
+  }
+  celebrationDocument.body.append(finishCelebration);
+  void playCelebrationAudio();
+  finishTimer = setTimeout(closeFinishCelebration, 8500);
+}
+
+async function playCelebrationAudio() {
+  if (!finishAudio) return;
+  try {
+    finishAudio.currentTime = 0;
+    await finishAudio.play();
+  } catch {
+    // Visual celebrations still work when audio is unavailable.
+  }
+}
+
+window.addEventListener("pagehide", closeFinishCelebration);
+
+let sectionCelebration;
+let sectionCelebrationTimer;
+
+function celebrateSection() {
+  clearTimeout(sectionCelebrationTimer);
+  sectionCelebration?.remove();
+  sectionCelebration = document.createElement("div");
+  sectionCelebration.className = "section-celebration";
+
+  if (!reducedMotion.matches) {
+    const colors = [
+      "--celebration-purple",
+      "--celebration-pink",
+      "--celebration-teal",
+      "--celebration-gold",
+    ];
+    const positions = [
+      [24, 30],
+      [76, 32],
+      [50, 68],
+    ];
+    positions.forEach(([left, top], burst) => {
+      const firework = document.createElement("div");
+      firework.className = "section-firework";
+      firework.setAttribute("aria-hidden", "true");
+      firework.style.left = left + "%";
+      firework.style.top = top + "%";
+      firework.style.setProperty("--delay", burst * 240 + "ms");
+      firework.style.color = "var(" + colors[burst] + ")";
+      for (let i = 0; i < 32; i++) {
+        const angle = (i * 2 * Math.PI) / 32;
+        const distance = i % 2 ? 110 : 175;
+        const spark = document.createElement("span");
+        spark.className = "section-spark";
+        spark.style.color = "var(" + colors[i % colors.length] + ")";
+        spark.style.setProperty("--x", Math.cos(angle) * distance + "px");
+        spark.style.setProperty("--y", Math.sin(angle) * distance + 45 + "px");
+        firework.append(spark);
+      }
+      sectionCelebration.append(firework);
+    });
+  }
+  document.body.append(sectionCelebration);
+  sectionCelebrationTimer = setTimeout(() => {
+    sectionCelebration.remove();
+    sectionCelebration = null;
+  }, 2400);
 }
 
 async function playChime(finished) {
@@ -93,16 +392,16 @@ async function playChime(finished) {
 
     const notes = finished ? [523.25, 659.25, 783.99] : [523.25, 659.25];
     notes.forEach((frequency, index) => {
-      const start = audio.currentTime + index * .085;
+      const start = audio.currentTime + index * 0.085;
       const tone = audio.createOscillator();
       const volume = audio.createGain();
       tone.frequency.value = frequency;
-      volume.gain.setValueAtTime(.001, start);
-      volume.gain.exponentialRampToValueAtTime(.11, start + .015);
-      volume.gain.exponentialRampToValueAtTime(.001, start + .17);
+      volume.gain.setValueAtTime(0.001, start);
+      volume.gain.exponentialRampToValueAtTime(0.11, start + 0.015);
+      volume.gain.exponentialRampToValueAtTime(0.001, start + 0.17);
       tone.connect(volume).connect(audio.destination);
       tone.start(start);
-      tone.stop(start + .18);
+      tone.stop(start + 0.18);
     });
   } catch {
     // Audio can be unavailable in a kiosk or browser. The checklist still works.
@@ -118,30 +417,47 @@ for (const button of tasks) {
     save();
     if (checked) {
       const finished = !allDone.hidden;
+      const section =
+        routine === "morning" &&
+        morningSections.find((group) =>
+          group.tasks.some(([taskId]) => taskId === id),
+        );
+      const sectionFinished =
+        section && section.tasks.every(([taskId]) => completed.has(taskId));
       celebrate(button, finished);
-      void playChime(finished);
+      if (sectionFinished && !finished) celebrateSection();
+      if (!finished || routine !== "morning")
+        void playChime(finished || sectionFinished);
     } else {
       stopCelebration(button);
     }
   });
 }
 
-fullscreen.addEventListener("click", async () => {
+fullscreen?.addEventListener("click", async () => {
   fullscreenStatus.textContent = "";
   if (!document.fullscreenEnabled) {
-    fullscreenStatus.textContent = "Full screen is unavailable in this view. Try opening the checklist directly in Chrome.";
+    fullscreenStatus.textContent =
+      "Full screen is unavailable in this view. Try opening the checklist directly in Chrome.";
     return;
   }
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+    else
+      await document.documentElement.requestFullscreen({
+        navigationUI: "hide",
+      });
   } catch {
-    fullscreenStatus.textContent = "The browser couldn’t switch to full screen.";
+    fullscreenStatus.textContent =
+      "The browser couldn’t switch to full screen.";
   }
 });
 
 document.addEventListener("fullscreenchange", () => {
-  fullscreen.textContent = document.fullscreenElement ? "Exit full screen" : "Full screen";
+  if (fullscreen)
+    fullscreen.textContent = document.fullscreenElement
+      ? "Exit full screen"
+      : "Full screen";
 });
 
 render();

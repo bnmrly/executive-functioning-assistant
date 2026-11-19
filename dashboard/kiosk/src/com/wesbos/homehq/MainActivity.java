@@ -515,6 +515,7 @@ public class MainActivity extends Activity {
     if (p.endsWith(".webp")) return "image/webp";
     if (p.endsWith(".gif")) return "image/gif";
     if (p.endsWith(".woff2")) return "font/woff2";
+    if (p.endsWith(".mp3")) return "audio/mpeg";
     if (p.endsWith(".txt")) return "text/plain";
     return "application/octet-stream";
   }

@@ -1,0 +1,14 @@
+.routine-celebration { position: fixed; inset: 0; z-index: 10000; overflow: hidden; display: grid; place-items: center; background: linear-gradient(135deg, #ffe887, #ffc6e2 48%, #b8ecff); color: #35216d; font-family: "Archivo", system-ui, sans-serif; }
+.routine-celebration-copy { position: relative; z-index: 2; text-align: center; animation: routine-arrive 650ms ease-out both; }
+.routine-celebration-emoji { font-size: clamp(100px, 23vh, 220px); line-height: 1.1; animation: routine-cheer 1100ms ease-in-out infinite; }
+.routine-celebration h2 { margin: 8px 0 0; font: 900 clamp(48px, 10vw, 128px)/1 "Archivo", system-ui, sans-serif; letter-spacing: -.04em; }
+.routine-celebration p { margin: 12px 0 22px; font: 400 clamp(32px, 6vw, 64px)/1.1 "Instrument Serif", Georgia, serif; }
+.routine-celebration-dismiss { min-height: 48px; border: 2px solid currentColor; border-radius: 16px; padding: 10px 24px; background: #fffdf8; color: inherit; font: 700 20px "Archivo", system-ui, sans-serif; cursor: pointer; }
+.routine-firework { position: absolute; width: 0; height: 0; pointer-events: none; }
+.routine-spark { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 16px currentColor; animation: routine-burst 2000ms ease-out infinite; animation-delay: var(--delay); }
+.routine-confetti { position: absolute; top: -30px; width: 14px; height: 24px; border-radius: 3px; pointer-events: none; animation: routine-rain 3000ms linear infinite; animation-delay: var(--delay); }
+@keyframes routine-burst { 0% { opacity: 0; transform: translate(0, 0) scale(.2); } 12% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(.3); } }
+@keyframes routine-rain { from { transform: translate(0, -20px) rotate(0); } to { transform: translate(var(--drift), 110vh) rotate(720deg); } }
+@keyframes routine-arrive { from { opacity: 0; transform: scale(.5); } 65% { opacity: 1; transform: scale(1.08); } to { transform: scale(1); } }
+@keyframes routine-cheer { 50% { transform: scale(1.12) rotate(-8deg); } }
+@media (prefers-reduced-motion: reduce) { .routine-celebration-copy, .routine-celebration-emoji { animation: none; } .routine-spark, .routine-confetti { display: none; } }

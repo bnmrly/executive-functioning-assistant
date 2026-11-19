@@ -138,3 +138,40 @@ footer [role="status"]:empty { display: none; }
   .particle { display: none; }
   .is-celebrating .check { animation: none; }
 }
+
+/* The morning routine uses the same typography as the dashboard. */
+:root[data-routine="morning"] { font-family: "Archivo", "Roboto", system-ui, sans-serif; color: var(--ink); }
+[data-routine="morning"] main { max-width: 1140px; padding: 24px 28px; }
+[data-routine="morning"] h1 { font-family: "Instrument Serif", Georgia, serif; font-size: 56px; font-weight: 400; letter-spacing: -.02em; }
+[data-routine="morning"] .progress-copy { font-size: 20px; }
+[data-routine="morning"] .morning-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
+[data-routine="morning"] .morning-group { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper-2); }
+[data-routine="morning"] .morning-group h2 { margin: 0 0 16px; font-family: "Instrument Serif", Georgia, serif; font-size: 32px; font-weight: 400; line-height: 1.05; }
+[data-routine="morning"] .morning-group--toilet { grid-column: 1; grid-row: 1 / span 2; }
+[data-routine="morning"] .morning-group--care { grid-column: 2; grid-row: 1; }
+[data-routine="morning"] .morning-group--dressed { grid-column: 3; grid-row: 1 / span 2; }
+[data-routine="morning"] .morning-group--hair { grid-column: 2; grid-row: 2; }
+[data-routine="morning"] .tasks { grid-template-columns: 1fr; gap: 10px; margin: 0; }
+[data-routine="morning"] .task { min-height: 64px; padding: 10px; gap: 10px; font-size: 22px; font-weight: 600; line-height: 1.2; transition: background-color 200ms ease, border-color 200ms ease; }
+[data-routine="morning"] .check { flex-basis: 30px; height: 30px; }
+[data-routine="morning"] .is-celebrating { z-index: 1; animation: morning-success 850ms ease-out; }
+[data-routine="morning"] .is-celebrating .check { animation: morning-check 650ms ease-out; }
+[data-routine="morning"] .particle { width: 11px; height: 11px; animation-duration: 950ms; }
+[data-routine="morning"] #all-done { font-family: "Instrument Serif", Georgia, serif; font-size: 32px; font-weight: 400; }
+@keyframes morning-success { 0% { transform: scale(1); } 25% { transform: scale(1.045) rotate(-1deg); } 50% { transform: scale(.99) rotate(.5deg); } 75% { transform: scale(1.015); } 100% { transform: scale(1); } }
+@keyframes morning-check { 35% { transform: scale(1.45) rotate(-14deg); } 70% { transform: scale(.92) rotate(8deg); } }
+@media (max-width: 800px) { [data-routine="morning"] .morning-groups { grid-template-columns: 1fr; } [data-routine="morning"] .morning-group { grid-column: auto; grid-row: auto; } }
+@media (prefers-reduced-motion: reduce) { [data-routine="morning"] .task { transition: none; } [data-routine="morning"] .is-celebrating, [data-routine="morning"] .is-celebrating .check { animation: none; } }
+
+.section-celebration { position: fixed; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
+.section-firework { position: absolute; width: 0; height: 0; }
+.section-firework::before { content: ""; position: absolute; width: 150px; height: 150px; margin: -75px; border: 3px solid currentColor; border-radius: 50%; animation: section-ring 1200ms ease-out both; animation-delay: var(--delay); }
+.section-spark { position: absolute; width: 9px; height: 9px; margin: -4px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; animation: section-firework 1500ms cubic-bezier(.15, .65, .35, 1) both; animation-delay: var(--delay); }
+@keyframes section-firework { 0% { opacity: 0; transform: translate(0, 0) scale(.2); } 8% { opacity: 1; } 65% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(.2); } }
+@keyframes section-ring { 0% { opacity: .8; transform: scale(.1); } 100% { opacity: 0; transform: scale(2); } }
+@media (prefers-reduced-motion: reduce) { .section-firework { display: none; } }
+
+[data-routine="morning"] header { flex-wrap: nowrap; align-items: center; min-height: 60px; }
+[data-routine="morning"] .section-statuses { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; max-width: 560px; }
+[data-routine="morning"] .section-statuses span { padding: 7px 12px; background: var(--progress-panel); color: var(--progress-text); border-radius: 12px; font-size: 16px; font-weight: 700; line-height: 1.2; }
+@media (max-width: 800px) { [data-routine="morning"] header { flex-wrap: wrap; } [data-routine="morning"] .section-statuses { justify-content: flex-start; } }

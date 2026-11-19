@@ -41,8 +41,19 @@ const morningSections = [
   },
 ];
 
-if (routine === "morning") {
-  document.documentElement.dataset.routine = "morning";
+const eveningSections = [
+  morningSections[0],
+  morningSections[1],
+  { name: "Ready for bed", key: "bedtime", accent: "bag", tasks: [["pyjamas", "Put on pyjamas"]] },
+  { name: "Clean", key: "clean", accent: "teeth", tasks: [["clean-something", "Clean something"]] },
+];
+const isEvening = routine === "evening";
+const isGrouped = routine === "morning" || isEvening;
+const sections = isEvening ? eveningSections : morningSections;
+
+if (isGrouped) {
+  document.documentElement.dataset.routine = routine;
+  document.documentElement.dataset.grouped = "true";
   const fonts = document.createElement("link");
   fonts.rel = "stylesheet";
   fonts.href =
@@ -50,10 +61,6 @@ if (routine === "morning") {
   document.head.append(fonts);
   document.getElementById("fullscreen").remove();
   document.getElementById("fullscreen-status").remove();
-  const statuses = document.createElement("div");
-  statuses.className = "section-statuses";
-  statuses.setAttribute("role", "status");
-  document.querySelector("header").append(statuses);
   try {
     if (window.parent.location.origin === location.origin)
       celebrationDocument = window.parent.document;
@@ -70,11 +77,11 @@ if (routine === "morning") {
   const groups = document.createElement("div");
   groups.className = "morning-groups";
   document.querySelector(".tasks").replaceWith(groups);
-  morningSections.forEach((group) => {
+  sections.forEach((group) => {
     const section = document.createElement("section");
     section.className = "morning-group morning-group--" + group.key;
     const heading = document.createElement("h2");
-    heading.id = "morning-" + group.key;
+    heading.id = routine + "-" + group.key;
     heading.textContent = group.name;
     section.setAttribute("aria-labelledby", heading.id);
     const list = document.createElement("ol");
@@ -112,7 +119,7 @@ const storageKey =
   routine === "morning"
     ? "beth-checklist-morning-v2"
     : routine === "evening"
-      ? "beth-checklist-evening-v1"
+      ? "beth-checklist-evening-v2"
       : "beth-checklist-v1";
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const taskIds = new Set(tasks.map((button) => button.dataset.task));
@@ -163,23 +170,7 @@ function render() {
   progressPercent.textContent = `${percent}%`;
   progressLabel.textContent = `${completed.size} of ${tasks.length} complete`;
   allDone.hidden = completed.size !== tasks.length;
-  if (routine === "morning") {
-    const statuses = document.querySelector(".section-statuses");
-    const finishedSections = morningSections.filter((group) =>
-      group.tasks.every(([id]) => completed.has(id)),
-    );
-    const names = finishedSections.map((group) => group.key).join(",");
-    if (statuses.dataset.sections !== names) {
-      statuses.dataset.sections = names;
-      statuses.replaceChildren(
-        ...finishedSections.map((group) => {
-          const badge = document.createElement("span");
-          badge.textContent = group.name + " complete";
-          return badge;
-        }),
-      );
-    }
-  }
+
 }
 
 function stopCelebration(button) {
@@ -190,13 +181,19 @@ function stopCelebration(button) {
 }
 
 function celebrate(button, finished) {
-  if (routine === "morning" && finished) {
+  if (isGrouped && finished) {
     clearTimeout(finishStartTimer);
     finishStartTimer = setTimeout(() => {
       if (completed.size === tasks.length) celebrateFinish();
     }, 900);
   }
   if (reducedMotion.matches) return;
+  if (isEvening) {
+    stopCelebration(button);
+    button.classList.add("is-celebrating");
+    celebrationTimers.set(button, setTimeout(() => stopCelebration(button), 800));
+    return;
+  }
   stopCelebration(button);
   const colors = [
     "--celebration-purple",
@@ -259,24 +256,46 @@ function celebrateFinish() {
   sectionCelebration = null;
   finishCelebration = celebrationDocument.createElement("div");
   finishCelebration.className = "routine-celebration";
+  finishCelebration.dataset.routine = routine;
   const message = celebrationDocument.createElement("div");
   message.className = "routine-celebration-copy";
   const emoji = celebrationDocument.createElement("div");
   emoji.className = "routine-celebration-emoji";
-  emoji.textContent = "🎉";
+  emoji.textContent = isEvening ? "🌙" : "🎉";
   emoji.setAttribute("aria-hidden", "true");
   const title = celebrationDocument.createElement("h2");
   title.setAttribute("role", "status");
   title.textContent = "WELL DONE, BETH!";
   const cheer = celebrationDocument.createElement("p");
-  cheer.textContent = "You smashed it!";
+  cheer.textContent = isEvening ? "Ready for a cosy night" : "You smashed it!";
   const dismiss = celebrationDocument.createElement("button");
   dismiss.type = "button";
   dismiss.className = "routine-celebration-dismiss";
-  dismiss.textContent = "Back to checklist";
-  dismiss.addEventListener("click", closeFinishCelebration);
-  message.append(emoji, title, cheer, dismiss);
-  finishCelebration.append(message);
+  dismiss.setAttribute("aria-label", "Back to Today");
+  dismiss.title = "Back to Today";
+  const homeIcon = celebrationDocument.createElementNS("http://www.w3.org/2000/svg", "svg");
+  homeIcon.setAttribute("viewBox", "0 0 24 24");
+  homeIcon.setAttribute("width", "26");
+  homeIcon.setAttribute("height", "26");
+  homeIcon.setAttribute("fill", "none");
+  homeIcon.setAttribute("stroke", "currentColor");
+  homeIcon.setAttribute("stroke-width", "2");
+  homeIcon.setAttribute("stroke-linecap", "round");
+  homeIcon.setAttribute("stroke-linejoin", "round");
+  homeIcon.setAttribute("aria-hidden", "true");
+  for (const d of ["M3 11l9-7 9 7", "M5 10v10h14V10"]) {
+    const path = celebrationDocument.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    homeIcon.append(path);
+  }
+  dismiss.append(homeIcon);
+  dismiss.addEventListener("click", () => {
+    closeFinishCelebration();
+    celebrationDocument.defaultView.location.hash = "home";
+    if (celebrationDocument === document) location.href = "/#home";
+  });
+  message.append(emoji, title, cheer);
+  finishCelebration.append(message, dismiss);
   if (!reducedMotion.matches) {
     const colors = [
       "--celebration-purple",
@@ -294,7 +313,7 @@ function celebrateFinish() {
       [45, 12],
       [55, 88],
     ];
-    positions.forEach(([left, top], index) => {
+    (isEvening ? [] : positions).forEach(([left, top], index) => {
       const burst = celebrationDocument.createElement("div");
       burst.className = "routine-firework";
       burst.setAttribute("aria-hidden", "true");
@@ -312,7 +331,7 @@ function celebrateFinish() {
       }
       finishCelebration.append(burst);
     });
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < (isEvening ? 24 : 90); i++) {
       const confetti = celebrationDocument.createElement("span");
       confetti.className = "routine-confetti";
       confetti.setAttribute("aria-hidden", "true");
@@ -343,11 +362,18 @@ window.addEventListener("pagehide", closeFinishCelebration);
 let sectionCelebration;
 let sectionCelebrationTimer;
 
-function celebrateSection() {
+function celebrateSection(group) {
   clearTimeout(sectionCelebrationTimer);
   sectionCelebration?.remove();
   sectionCelebration = document.createElement("div");
   sectionCelebration.className = "section-celebration";
+  if (isEvening) {
+    const panel = group && document.getElementById(routine + "-" + group.key)?.closest("section");
+    if (panel && !reducedMotion.matches) {
+      panel.animate([{ opacity: 0.7 }, { opacity: 1 }], { duration: 1200 });
+    }
+    return;
+  }
 
   if (!reducedMotion.matches) {
     const colors = [
@@ -390,6 +416,7 @@ function celebrateSection() {
 }
 
 async function playChime(finished) {
+  if (isEvening) return;
   const Audio = window.AudioContext || window.webkitAudioContext;
   if (!Audio) return;
 
@@ -426,18 +453,18 @@ for (const button of tasks) {
     if (checked) {
       const finished = !allDone.hidden;
       const section =
-        routine === "morning" &&
-        morningSections.find((group) =>
+        isGrouped &&
+        sections.find((group) =>
           group.tasks.some(([taskId]) => taskId === id),
         );
       const sectionFinished =
         section && section.tasks.every(([taskId]) => completed.has(taskId));
       celebrate(button, finished);
-      if (sectionFinished && !finished) celebrateSection();
+      if (sectionFinished && !finished) celebrateSection(section);
       if (!finished || routine !== "morning")
         void playChime(finished || sectionFinished);
     } else {
-      if (routine === "morning") closeFinishCelebration();
+      if (isGrouped) closeFinishCelebration();
       stopCelebration(button);
     }
   });

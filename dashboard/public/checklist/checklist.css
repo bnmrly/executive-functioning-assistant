@@ -139,29 +139,29 @@ footer [role="status"]:empty { display: none; }
   .is-celebrating .check { animation: none; }
 }
 
-/* The morning routine uses the same typography as the dashboard. */
-:root[data-routine="morning"] { font-family: "Archivo", "Roboto", system-ui, sans-serif; color: var(--ink); }
-[data-routine="morning"] main { max-width: 1140px; padding: 24px 28px; }
-[data-routine="morning"] h1 { font-family: "Instrument Serif", Georgia, serif; font-size: 56px; font-weight: 400; letter-spacing: -.02em; }
-[data-routine="morning"] .progress-copy { font-size: 20px; }
-[data-routine="morning"] .morning-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
-[data-routine="morning"] .morning-group { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper-2); }
-[data-routine="morning"] .morning-group h2 { margin: 0 0 16px; font-family: "Instrument Serif", Georgia, serif; font-size: 32px; font-weight: 400; line-height: 1.05; }
-[data-routine="morning"] .morning-group--toilet { grid-column: 1; grid-row: 1 / span 2; }
-[data-routine="morning"] .morning-group--care { grid-column: 2; grid-row: 1; }
-[data-routine="morning"] .morning-group--dressed { grid-column: 3; grid-row: 1 / span 2; }
-[data-routine="morning"] .morning-group--hair { grid-column: 2; grid-row: 2; }
-[data-routine="morning"] .tasks { grid-template-columns: 1fr; gap: 10px; margin: 0; }
-[data-routine="morning"] .task { min-height: 64px; padding: 10px; gap: 10px; font-size: 22px; font-weight: 600; line-height: 1.2; transition: background-color 200ms ease, border-color 200ms ease; }
-[data-routine="morning"] .check { flex-basis: 30px; height: 30px; }
-[data-routine="morning"] .is-celebrating { z-index: 1; animation: morning-success 850ms ease-out; }
-[data-routine="morning"] .is-celebrating .check { animation: morning-check 650ms ease-out; }
-[data-routine="morning"] .particle { width: 11px; height: 11px; animation-duration: 950ms; }
-[data-routine="morning"] #all-done { font-family: "Instrument Serif", Georgia, serif; font-size: 32px; font-weight: 400; }
+/* Both routines share the dashboard typography and grouped layout. */
+:root[data-grouped="true"] { font-family: "Archivo", "Roboto", system-ui, sans-serif; color: var(--ink); }
+[data-grouped="true"] main { max-width: 1140px; padding: 24px 28px; }
+[data-grouped="true"] h1 { font-family: "Instrument Serif", Georgia, serif; font-size: 56px; font-weight: 400; letter-spacing: -.02em; }
+[data-grouped="true"] .progress-copy { font-size: 20px; }
+[data-grouped="true"] .morning-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
+[data-grouped="true"] .morning-group { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper-2); }
+[data-grouped="true"] .morning-group h2 { margin: 0 0 16px; font-family: "Instrument Serif", Georgia, serif; font-size: 32px; font-weight: 400; line-height: 1.05; }
+[data-grouped="true"] .morning-group--toilet { grid-column: 1; grid-row: 1 / span 2; }
+[data-grouped="true"] .morning-group--care { grid-column: 2; grid-row: 1; }
+[data-grouped="true"] .morning-group--dressed { grid-column: 3; grid-row: 1 / span 2; }
+[data-grouped="true"] .morning-group--hair { grid-column: 2; grid-row: 2; }
+[data-grouped="true"] .tasks { grid-template-columns: 1fr; gap: 10px; margin: 0; }
+[data-grouped="true"] .task { min-height: 64px; padding: 10px; gap: 10px; font-size: 22px; font-weight: 600; line-height: 1.2; transition: background-color 200ms ease, border-color 200ms ease; }
+[data-grouped="true"] .check { flex-basis: 30px; height: 30px; }
+[data-grouped="true"] .is-celebrating { z-index: 1; animation: morning-success 850ms ease-out; }
+[data-grouped="true"] .is-celebrating .check { animation: morning-check 650ms ease-out; }
+[data-grouped="true"] .particle { width: 11px; height: 11px; animation-duration: 950ms; }
+[data-grouped="true"] #all-done { font-family: "Instrument Serif", Georgia, serif; font-size: 32px; font-weight: 400; }
 @keyframes morning-success { 0% { transform: scale(1); } 25% { transform: scale(1.045) rotate(-1deg); } 50% { transform: scale(.99) rotate(.5deg); } 75% { transform: scale(1.015); } 100% { transform: scale(1); } }
 @keyframes morning-check { 35% { transform: scale(1.45) rotate(-14deg); } 70% { transform: scale(.92) rotate(8deg); } }
-@media (max-width: 800px) { [data-routine="morning"] .morning-groups { grid-template-columns: 1fr; } [data-routine="morning"] .morning-group { grid-column: auto; grid-row: auto; } }
-@media (prefers-reduced-motion: reduce) { [data-routine="morning"] .task { transition: none; } [data-routine="morning"] .is-celebrating, [data-routine="morning"] .is-celebrating .check { animation: none; } }
+@media (max-width: 800px) { [data-grouped="true"] .morning-groups { grid-template-columns: 1fr; } [data-grouped="true"] .morning-group { grid-column: auto; grid-row: auto; } }
+@media (prefers-reduced-motion: reduce) { [data-grouped="true"] .task { transition: none; } [data-grouped="true"] .is-celebrating, [data-grouped="true"] .is-celebrating .check { animation: none; } }
 
 .section-celebration { position: fixed; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
 .section-firework { position: absolute; width: 0; height: 0; }
@@ -171,7 +171,22 @@ footer [role="status"]:empty { display: none; }
 @keyframes section-ring { 0% { opacity: .8; transform: scale(.1); } 100% { opacity: 0; transform: scale(2); } }
 @media (prefers-reduced-motion: reduce) { .section-firework { display: none; } }
 
-[data-routine="morning"] header { flex-wrap: nowrap; align-items: center; min-height: 60px; }
-[data-routine="morning"] .section-statuses { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; max-width: 560px; }
-[data-routine="morning"] .section-statuses span { padding: 7px 12px; background: var(--progress-panel); color: var(--progress-text); border-radius: 12px; font-size: 16px; font-weight: 700; line-height: 1.2; }
-@media (max-width: 800px) { [data-routine="morning"] header { flex-wrap: wrap; } [data-routine="morning"] .section-statuses { justify-content: flex-start; } }
+[data-grouped="true"] header { flex-wrap: nowrap; align-items: center; min-height: 60px; }
+
+/* Evening keeps the same structure with softer, quieter feedback. */
+:root[data-routine="evening"] {
+  --checklist-page: #e9e6e0; --ink: #3e4249; --paper-2: #dfddd8; --line: #cccac5;
+  --checklist-card: #f0eeea; --checklist-card-border: #d4d1cb; --checklist-focus: #656b82;
+  --progress-panel: #dbdce4; --progress-text: #464b61; --progress-track: #c5c8d2;
+  --progress-start: #73798e; --progress-half: #697f7c; --progress-done: #607866;
+  --task-teal: #587570; --task-teal-light: #d9e2dd;
+  --task-pink: #796677; --task-pink-light: #e3dce2;
+  --task-gold: #776d59; --task-gold-light: #e4dfd3;
+}
+[data-routine="evening"] .morning-group--bedtime { grid-column: 3; grid-row: 1 / span 2; }
+[data-routine="evening"] .morning-group--clean { grid-column: 2; grid-row: 2; }
+[data-routine="evening"] .is-celebrating { animation: none; }
+[data-routine="evening"] .is-celebrating .check { animation: evening-check 750ms ease-out; }
+@keyframes evening-check { 50% { transform: scale(1.1); } }
+@media (max-width: 800px) { [data-routine="evening"] .morning-group { grid-column: auto; grid-row: auto; } }
+@media (prefers-reduced-motion: reduce) { [data-routine="evening"] .is-celebrating .check { animation: none; } }

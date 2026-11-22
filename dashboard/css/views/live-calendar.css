@@ -16,4 +16,13 @@
 .calendar-day li { min-width: 0; padding: 12px 10px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
 .calendar-event-time { display: block; margin-bottom: 10px; color: var(--mute); font-size: 17px; font-weight: 700; }
 .calendar-event-title { display: block; overflow-wrap: anywhere; font-size: 21px; font-weight: 700; line-height: 1.2; }
+.calendar-event--all-day .calendar-event-title {
+  color: var(--pastel-red);
+  font-size: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.calendar-day li.calendar-event--overview { background: var(--overview-bg); }
+.calendar-event--overview .calendar-event-title { color: var(--overview-color); }
 .calendar-empty { text-align: center; color: var(--mute); font-size: 17px; }

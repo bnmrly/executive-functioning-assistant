@@ -1,4 +1,6 @@
 // Today combines the device clock with the local forecast for Chorlton, Manchester.
+import { planTitle, isSchoolPlan } from './plan-events.js';
+
 (function () {
   'use strict';
 
@@ -147,6 +149,8 @@
     const panel = view.querySelector('.h-agenda-content');
     const heading = view.querySelector('.h-agenda-title');
     heading.textContent = 'Today’s plan';
+    const schoolPanel = view.querySelector('.h-school-plan');
+    const homePanel = view.querySelector('.h-home-plan');
     if (data.status !== 'ok') {
       const messages = {
         permission_required: 'Allow calendar access to show Beth’s plan.',
@@ -158,16 +162,26 @@
       };
       panel.innerHTML = '<p class="h-agenda-status" role="status">' + App.esc(messages[data.status] || messages.unavailable) + '</p>' +
         (data.status === 'permission_required' ? '<button class="h-calendar-allow" type="button">Allow calendar access</button>' : '');
+      schoolPanel.innerHTML = '<p class="h-agenda-status">Calendar unavailable</p>';
+      homePanel.innerHTML = '<p class="h-agenda-status">Calendar unavailable</p>';
       return;
     }
     const today = new Date(data.dayStart);
     const tomorrow = App.addDays(today, 1);
     const afterTomorrow = App.addDays(today, 2);
     const onDay = (event, start, end) => event.start < +end && event.end > +start;
-    let events = data.events.filter(event => onDay(event, today, tomorrow));
+    const todayAllDay = data.events.filter(event => event.allDay && onDay(event, today, tomorrow));
+    function allDayPlan(list, empty) {
+      return list.length ? '<ul class="h-plan-events">' + list.map(event =>
+        '<li class="h-different-event">' + App.esc(planTitle(event)) + '</li>'
+      ).join('') + '</ul>' : '<p class="h-agenda-empty">' + empty + '</p>';
+    }
+    schoolPanel.innerHTML = allDayPlan(todayAllDay.filter(isSchoolPlan), 'No school plan today');
+    homePanel.innerHTML = allDayPlan(todayAllDay.filter(event => !isSchoolPlan(event)), 'Nothing planned');
+    let events = data.events.filter(event => !event.allDay && onDay(event, today, tomorrow));
     let day = today;
     if (!events.length) {
-      const upcoming = data.events.filter(event => onDay(event, tomorrow, afterTomorrow));
+      const upcoming = data.events.filter(event => !event.allDay && onDay(event, tomorrow, afterTomorrow));
       if (upcoming.length) {
         events = upcoming;
         day = tomorrow;
@@ -229,8 +243,12 @@
             '<button class="h-calendar-refresh" type="button" aria-label="Refresh calendar">Refresh</button></header>' +
           '<div class="h-agenda-content"><p class="h-agenda-status" role="status">Loading calendar…</p></div></section>' +
         '<section class="h-different" aria-labelledby="h-different-title">' +
-          '<h2 id="h-different-title">Different today</h2><p class="h-different-event">Grandad is visiting</p>' +
-          '<p class="h-example-note">Example</p></section></div></div>';
+          '<h2 id="h-different-title">Different today</h2>' +
+          '<section class="h-plan-section" aria-labelledby="h-school-plan-title"><h3 id="h-school-plan-title">School plan</h3>' +
+            '<div class="h-school-plan"><p class="h-agenda-status">Loading calendar…</p></div></section>' +
+          '<section class="h-plan-section" aria-labelledby="h-home-plan-title"><h3 id="h-home-plan-title">Home plan</h3>' +
+            '<div class="h-home-plan"><p class="h-agenda-status">Loading calendar…</p></div></section>' +
+          '</section></div></div>';
     el.querySelector('.h-calendar-refresh').addEventListener('click', () => void refreshCalendar(true));
     el.querySelector('.h-agenda-content').addEventListener('click', async event => {
       if (!event.target.closest('.h-calendar-allow')) return;
@@ -249,6 +267,7 @@
     if (!el.firstChild) mount(el);
     const now = new Date();
     renderClock(now);
+    view.querySelector('.h-different').dataset.planWeekday = now.getDay();
     paintForecast(now);
     if (App.current === 'home') {
       void refreshForecast();

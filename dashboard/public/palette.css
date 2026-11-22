@@ -31,6 +31,7 @@
   /* Status colours. RGB channels also support translucent backgrounds. */
   --alert-rgb: 229 38 30;
   --alert: rgb(var(--alert-rgb));
+  --pastel-red: #a64f58;
   --amber-rgb: 255 149 0;
   --amber: rgb(var(--amber-rgb));
   --ok: #00a36c;
@@ -63,9 +64,49 @@
   --task-gold: #805010;
   --task-gold-light: #ffedbf;
 
+  /* Calendar overview pairs sampled from the reference chips. */
+  --overview-green: #188128;
+  --overview-green-bg: #e3fae1;
+  --overview-yellow: #675000;
+  --overview-yellow-bg: #fff2cb;
+  --overview-pink: #c80aa8;
+  --overview-pink-bg: #ffe5f7;
+  --overview-orange: #814200;
+  --overview-orange-bg: #ffecde;
+  --overview-blue: #436bd7;
+  --overview-blue-bg: #e9eeff;
+  --overview-teal: #17635d;
+  --overview-teal-bg: #d9f4ef;
+  --overview-lavender: #67419a;
+  --overview-lavender-bg: #eee5fb;
+
   /* Celebration colours */
   --celebration-purple: #a553c9;
   --celebration-pink: #e45175;
   --celebration-teal: #167e83;
   --celebration-gold: #cf8011;
+}
+
+[data-plan-weekday="1"] { --overview-color: var(--overview-green); --overview-bg: var(--overview-green-bg); }
+[data-plan-weekday="2"] { --overview-color: var(--overview-yellow); --overview-bg: var(--overview-yellow-bg); }
+[data-plan-weekday="3"] { --overview-color: var(--overview-pink); --overview-bg: var(--overview-pink-bg); }
+[data-plan-weekday="4"] { --overview-color: var(--overview-orange); --overview-bg: var(--overview-orange-bg); }
+[data-plan-weekday="5"] { --overview-color: var(--overview-blue); --overview-bg: var(--overview-blue-bg); }
+[data-plan-weekday="6"] { --overview-color: var(--overview-teal); --overview-bg: var(--overview-teal-bg); }
+[data-plan-weekday="0"] { --overview-color: var(--overview-lavender); --overview-bg: var(--overview-lavender-bg); }
+
+/* The source image uses Display P3. Keep sRGB equivalents for older WebViews. */
+@supports (color: color(display-p3 0 0 0)) {
+  :root {
+    --overview-green: color(display-p3 0.239216 0.498039 0.207843);
+    --overview-green-bg: color(display-p3 0.905882 0.976471 0.890196);
+    --overview-yellow: color(display-p3 0.388235 0.317647 0.086275);
+    --overview-yellow-bg: color(display-p3 0.992157 0.949020 0.811765);
+    --overview-pink: color(display-p3 0.717647 0.160784 0.639216);
+    --overview-pink-bg: color(display-p3 0.984314 0.901961 0.964706);
+    --overview-orange: color(display-p3 0.474510 0.270588 0.082353);
+    --overview-orange-bg: color(display-p3 0.988235 0.929412 0.878431);
+    --overview-blue: color(display-p3 0.298039 0.415686 0.815686);
+    --overview-blue-bg: color(display-p3 0.917647 0.933333 0.996078);
+  }
 }

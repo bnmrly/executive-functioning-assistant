@@ -1,4 +1,6 @@
 // A read-only week of events from the tablet's synced calendar.
+import { planTitle, isSchoolPlan, isOverviewPlan } from './plan-events.js';
+
 (function () {
   'use strict';
 
@@ -23,12 +25,19 @@
       const day = App.addDays(week, index);
       const end = App.addDays(day, 1);
       const entries = events.filter(event => event.start < +end && event.end > +day)
-        .sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.start - b.start);
+        .sort((a, b) => Number(b.allDay) - Number(a.allDay) ||
+          (a.allDay && b.allDay ? Number(isSchoolPlan(b)) - Number(isSchoolPlan(a)) : 0) ||
+          a.start - b.start);
       const label = App.fmt.day(day) + ', ' + day.getDate() + ' ' + App.fmt.month(day);
-      return '<section class="calendar-day' + (App.sameDay(day, today) ? ' calendar-day--today' : '') + '" aria-label="' + label + '">' +
+      return '<section class="calendar-day' + (App.sameDay(day, today) ? ' calendar-day--today' : '') + '" data-plan-weekday="' + day.getDay() + '" aria-label="' + label + '">' +
         '<h2><span>' + App.fmt.dayShort(day) + '</span><time datetime="' + dateKey(day) + '">' + day.getDate() + '</time></h2>' +
         (entries.length ? '<ol>' + entries.map(event => {
-          const time = event.allDay ? 'All day' : event.start < +day ? 'Continues' : App.fmt.hour(new Date(event.start));
+          if (event.allDay) {
+            const title = App.esc(planTitle(event));
+            const overviewClass = isOverviewPlan(event) ? ' calendar-event--overview' : '';
+            return '<li class="calendar-event--all-day' + overviewClass + '"><span class="calendar-event-title" title="' + title + '">' + title + '</span></li>';
+          }
+          const time = event.start < +day ? 'Continues' : App.fmt.hour(new Date(event.start));
           return '<li><span class="calendar-event-time">' + App.esc(time) + '</span><span class="calendar-event-title">' + App.esc(event.title) + '</span></li>';
         }).join('') + '</ol>' : '<p class="calendar-empty">No events</p>') + '</section>';
     }).join('');

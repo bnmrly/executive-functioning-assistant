@@ -114,6 +114,7 @@ const progressRing = document.getElementById("progress-ring");
 const progressPercent = document.getElementById("progress-percent");
 const progressLabel = document.getElementById("progress-label");
 const allDone = document.getElementById("all-done");
+const pointsStatus = document.getElementById("points-earned");
 const storageStatus = document.getElementById("storage-status");
 const storageKey =
   routine === "morning"
@@ -125,6 +126,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const taskIds = new Set(tasks.map((button) => button.dataset.task));
 const celebrationTimers = new Map();
 const completed = new Set();
+let progressDate = isGrouped ? RoutinePoints.dayKey() : null;
 
 let audio;
 
@@ -137,7 +139,7 @@ if (routine === "morning" || routine === "evening") {
 
 try {
   const saved = JSON.parse(localStorage.getItem(storageKey));
-  if (Array.isArray(saved?.changes)) {
+  if (Array.isArray(saved?.changes) && (!isGrouped || !saved.date || saved.date === progressDate)) {
     // Older saves recorded every toggle for Undo. Replay them to recover current progress.
     for (const id of saved.changes) {
       if (taskIds.has(id) && !completed.delete(id)) completed.add(id);
@@ -151,7 +153,7 @@ function save() {
   try {
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ changes: Array.from(completed) }),
+      JSON.stringify({ changes: Array.from(completed), ...(isGrouped && { date: progressDate }) }),
     );
     storageStatus.textContent = "";
   } catch {
@@ -180,11 +182,11 @@ function stopCelebration(button) {
   button.querySelectorAll(".particle").forEach((particle) => particle.remove());
 }
 
-function celebrate(button, finished) {
+function celebrate(button, finished, points) {
   if (isGrouped && finished) {
     clearTimeout(finishStartTimer);
     finishStartTimer = setTimeout(() => {
-      if (completed.size === tasks.length) celebrateFinish();
+      if (completed.size === tasks.length) celebrateFinish(points);
     }, 900);
   }
   if (reducedMotion.matches) return;
@@ -249,7 +251,7 @@ function closeFinishCelebration() {
   }
 }
 
-function celebrateFinish() {
+function celebrateFinish(points) {
   closeFinishCelebration();
   clearTimeout(sectionCelebrationTimer);
   sectionCelebration?.remove();
@@ -268,6 +270,7 @@ function celebrateFinish() {
   title.textContent = "WELL DONE, BETH!";
   const cheer = celebrationDocument.createElement("p");
   cheer.textContent = isEvening ? "Ready for a cosy night" : "You smashed it!";
+  if (points) cheer.textContent += " · +" + points + (points === 1 ? " point" : " points");
   const dismiss = celebrationDocument.createElement("button");
   dismiss.type = "button";
   dismiss.className = "routine-celebration-dismiss";
@@ -443,8 +446,28 @@ async function playChime(finished) {
   }
 }
 
+function resetOnNewDay() {
+  const today = RoutinePoints.dayKey();
+  if (today === progressDate) return;
+  progressDate = today;
+  completed.clear();
+  pointsStatus.hidden = true;
+  closeFinishCelebration();
+  sectionCelebration?.remove();
+  for (const button of tasks) stopCelebration(button);
+  render();
+  save();
+}
+
+if (isGrouped) {
+  window.addEventListener("focus", resetOnNewDay);
+  document.addEventListener("visibilitychange", resetOnNewDay);
+  setInterval(resetOnNewDay, 15_000);
+}
+
 for (const button of tasks) {
   button.addEventListener("click", () => {
+    if (isGrouped) resetOnNewDay();
     const id = button.dataset.task;
     const checked = !completed.delete(id);
     if (checked) completed.add(id);
@@ -459,7 +482,22 @@ for (const button of tasks) {
         );
       const sectionFinished =
         section && section.tasks.every(([taskId]) => completed.has(taskId));
-      celebrate(button, finished);
+      let points = 0;
+      if (isGrouped && (sectionFinished || finished)) {
+        const awards = [];
+        if (sectionFinished) awards.push("section:" + section.key);
+        if (finished) awards.push("routine");
+        try {
+          points = RoutinePoints.grant(progressDate, routine, awards);
+          if (points) {
+            pointsStatus.hidden = false;
+            pointsStatus.textContent = "+" + points + (points === 1 ? " point earned!" : " points earned!");
+          }
+        } catch {
+          storageStatus.textContent = "Points could not be saved on this device.";
+        }
+      }
+      celebrate(button, finished, points);
       if (sectionFinished && !finished) celebrateSection(section);
       if (!finished || routine !== "morning")
         void playChime(finished || sectionFinished);

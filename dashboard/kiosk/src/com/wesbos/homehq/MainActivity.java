@@ -30,6 +30,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -87,6 +89,7 @@ public class MainActivity extends Activity {
   static final String LOCAL_HOST = "127.0.0.1";
   static final int LOCAL_PORT = 8765;
   static final int PREVIEW_PORT = 5173;
+  private static final int PROFILE_PHOTO_REQUEST = 42;
   static final String LOCAL_ASSETS = "site";
   // Android's own captive portal check: 204 when online, anything else when a portal answers.
   // Plain HTTP so a portal can redirect it, and so it works before the clock is set.
@@ -98,6 +101,7 @@ public class MainActivity extends Activity {
   static final long TIME_NUDGE_MS = 60 * 1000;
 
   private WebView web;
+  private ValueCallback<Uri[]> profilePhotoCallback;
   private boolean livePreview;
   private Button menuButton;
   private Thread bootanimThread;
@@ -209,6 +213,32 @@ public class MainActivity extends Activity {
     web.setHorizontalScrollBarEnabled(false);
     web.setVerticalScrollBarEnabled(false);
     web.setOverScrollMode(View.OVER_SCROLL_NEVER);
+    web.setWebChromeClient(new WebChromeClient() {
+      @Override
+      public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback,
+          FileChooserParams params) {
+        String url = view.getUrl();
+        Uri page = Uri.parse(url == null ? "" : url);
+        boolean dashboardProfile = "http".equals(page.getScheme()) && LOCAL_HOST.equals(page.getHost())
+            && (page.getPort() == LOCAL_PORT || (livePreview && page.getPort() == PREVIEW_PORT))
+            && "/".equals(page.getPath()) && "profile".equals(page.getFragment());
+        if (!dashboardProfile || profilePhotoCallback != null
+            || params.getMode() != FileChooserParams.MODE_OPEN) {
+          callback.onReceiveValue(null);
+          return true;
+        }
+        Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        picker.addCategory(Intent.CATEGORY_OPENABLE);
+        picker.setType("image/*");
+        profilePhotoCallback = callback;
+        try {
+          startActivityForResult(picker, PROFILE_PHOTO_REQUEST);
+        } catch (android.content.ActivityNotFoundException e) {
+          finishProfilePhoto(null);
+        }
+        return true;
+      }
+    });
     // Keep navigation inside the kiosk. When the kiosk starts at boot before Wi-Fi is up, the
     // first load fails and would stay on the error page, so retry failed main-frame loads.
     // The offline screen covers WebView's error page until a load succeeds.
@@ -895,9 +925,24 @@ public class MainActivity extends Activity {
   }
 
   @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode != PROFILE_PHOTO_REQUEST) return;
+    Uri image = resultCode == RESULT_OK && data != null ? data.getData() : null;
+    finishProfilePhoto(image != null && "content".equals(image.getScheme()) ? new Uri[] {image} : null);
+  }
+
+  private void finishProfilePhoto(Uri[] image) {
+    ValueCallback<Uri[]> callback = profilePhotoCallback;
+    profilePhotoCallback = null;
+    if (callback != null) callback.onReceiveValue(image);
+  }
+
+  @Override
   protected void onDestroy() {
     unregisterReceiver(networkChange);
     handler.removeCallbacksAndMessages(null);
+    finishProfilePhoto(null);
     if (web != null) web.destroy();
     super.onDestroy();
   }

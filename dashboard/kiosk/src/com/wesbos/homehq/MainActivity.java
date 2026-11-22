@@ -202,7 +202,13 @@ public class MainActivity extends Activity {
     s.setJavaScriptEnabled(true);
     s.setDomStorageEnabled(true);
     s.setUseWideViewPort(true);
+    s.setSupportZoom(false);
+    s.setBuiltInZoomControls(false);
+    s.setDisplayZoomControls(false);
     s.setMediaPlaybackRequiresUserGesture(false);
+    web.setHorizontalScrollBarEnabled(false);
+    web.setVerticalScrollBarEnabled(false);
+    web.setOverScrollMode(View.OVER_SCROLL_NEVER);
     // Keep navigation inside the kiosk. When the kiosk starts at boot before Wi-Fi is up, the
     // first load fails and would stay on the error page, so retry failed main-frame loads.
     // The offline screen covers WebView's error page until a load succeeds.

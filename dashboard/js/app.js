@@ -336,13 +336,15 @@
   var STAGE_H = 800, STAGE_MIN_W = 1280;
   function fit() {
     var stage = $('#stage');
-    var vw = window.innerWidth, vh = window.innerHeight;
+    var viewport = window.visualViewport;
+    var vw = viewport ? viewport.width : window.innerWidth;
+    var vh = viewport ? viewport.height : window.innerHeight;
     if (!vw || !vh) return;
     var w = Math.max(STAGE_MIN_W, Math.round(STAGE_H * vw / vh));
     stage.style.setProperty('--stage-w', w + 'px');
     var s = Math.min(vw / w, vh / STAGE_H);
-    stage.style.left = ((vw - w * s) / 2) + 'px';
-    stage.style.top = ((vh - STAGE_H * s) / 2) + 'px';
+    stage.style.left = ((viewport ? viewport.offsetLeft : 0) + (vw - w * s) / 2) + 'px';
+    stage.style.top = ((viewport ? viewport.offsetTop : 0) + (vh - STAGE_H * s) / 2) + 'px';
     stage.style.transform = s === 1 ? '' : 'scale(' + s + ')';
   }
 
@@ -364,6 +366,10 @@
   App.start = function () {
     fit();
     window.addEventListener('resize', fit);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fit);
+      window.visualViewport.addEventListener('scroll', fit);
+    }
     // Switch tabs the instant a finger lands (pointerdown), not on release. Keyboard "clicks"
     // (detail === 0) still work.
     $('#rail').addEventListener('pointerdown', function (e) {

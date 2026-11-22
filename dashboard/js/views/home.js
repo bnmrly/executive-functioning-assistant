@@ -197,7 +197,9 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
           return '<li><span class="h-event-time">' + App.esc(time) + '</span><span class="h-event-title">' + App.esc(event.title) + '</span></li>';
         }).join('') + '</ol>' : '<p class="h-agenda-empty">Nothing planned</p>') + '</section>';
     }
-    panel.innerHTML = section('Daytime', events.filter(event => !evening(event))) +
+    const source = data.snapshot ? 'Preview · Google Calendar snapshot' : data.sample ? 'Preview · Sample events' : '';
+    panel.innerHTML = (source ? '<p class="h-agenda-status">' + source + '</p>' : '') +
+      section('Daytime', events.filter(event => !evening(event))) +
       section('Evening', events.filter(evening));
   }
 
@@ -208,7 +210,7 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
     calendarDay = day;
     calendarNextRefresh = Date.now() + 60000;
     try {
-      if (location.hostname !== '127.0.0.1' || location.port !== '8765') {
+      if (!import.meta.env.DEV && (location.hostname !== '127.0.0.1' || location.port !== '8765')) {
         paintCalendar({ status: 'browser' });
         return;
       }

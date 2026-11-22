@@ -86,6 +86,7 @@ public class MainActivity extends Activity {
   static final float EXIT_SLOP_PX = 60;
   static final String LOCAL_HOST = "127.0.0.1";
   static final int LOCAL_PORT = 8765;
+  static final int PREVIEW_PORT = 5173;
   static final String LOCAL_ASSETS = "site";
   // Android's own captive portal check: 204 when online, anything else when a portal answers.
   // Plain HTTP so a portal can redirect it, and so it works before the clock is set.
@@ -97,6 +98,7 @@ public class MainActivity extends Activity {
   static final long TIME_NUDGE_MS = 60 * 1000;
 
   private WebView web;
+  private boolean livePreview;
   private Button menuButton;
   private Thread bootanimThread;
   private final Handler handler = new Handler(Looper.getMainLooper());
@@ -186,6 +188,7 @@ public class MainActivity extends Activity {
   @Override
   protected void onCreate(Bundle state) {
     super.onCreate(state);
+    livePreview = getIntent().getBooleanExtra("live_preview", false);
     applyDebugFlag(getIntent());
     applyHomeFlag(getIntent());
     applyBootanimFlag(getIntent());
@@ -373,6 +376,7 @@ public class MainActivity extends Activity {
   protected void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
     setIntent(intent);
+    livePreview = intent.getBooleanExtra("live_preview", false);
     applyDebugFlag(intent);
     applyHomeFlag(intent);
     applyBootFlag(intent);
@@ -450,18 +454,20 @@ public class MainActivity extends Activity {
    */
   private WebResourceResponse localAsset(WebResourceRequest request) {
     Uri u = request.getUrl();
-    if (u == null || !"http".equalsIgnoreCase(u.getScheme()) || !LOCAL_HOST.equals(u.getHost())
-        || u.getPort() != LOCAL_PORT) return null;
+    if (u == null || !"http".equalsIgnoreCase(u.getScheme()) || !LOCAL_HOST.equals(u.getHost())) return null;
+    boolean previewRequest = livePreview && u.getPort() == PREVIEW_PORT;
+    if (u.getPort() != LOCAL_PORT && !previewRequest) return null;
     String path = u.getPath();
     if (path == null || path.isEmpty()) path = "/";
     if (path.endsWith("/")) path += "index.html";
     Map<String, String> headers = new HashMap<>();
     headers.put("Cache-Control", "no-cache");
     if (path.startsWith("/api/calendar")) {
-      // Expose device data only while our bundled dashboard is the top-level page.
+      // Device data stays in this WebView. Preview access is explicitly enabled for
+      // the ADB-forwarded loopback dev server, and never persisted across launches.
       Uri page = Uri.parse(mainUrl == null ? "" : mainUrl);
-      if (!"http".equals(page.getScheme()) || !LOCAL_HOST.equals(page.getHost())
-          || page.getPort() != LOCAL_PORT || request.isForMainFrame()) {
+      if (!calendarPageAllowed(page.getScheme(), page.getHost(), page.getPort(),
+          u.getPort(), request.isForMainFrame(), livePreview)) {
         return new WebResourceResponse("text/plain", "utf-8", 403, "Forbidden", headers, null);
       }
       if ("/api/calendar".equals(path) && "GET".equals(request.getMethod())) {
@@ -470,7 +476,7 @@ public class MainActivity extends Activity {
       if ("/api/calendar/permission".equals(path) && "POST".equals(request.getMethod())) {
         String origin = request.getRequestHeaders().get("Origin");
         if (origin == null) origin = request.getRequestHeaders().get("origin");
-        if (!"http://127.0.0.1:8765".equals(origin)) {
+        if (!("http://" + LOCAL_HOST + ":" + u.getPort()).equals(origin)) {
           return new WebResourceResponse("text/plain", "utf-8", 403, "Forbidden", headers, null);
         }
         runOnUiThread(() -> {
@@ -483,6 +489,8 @@ public class MainActivity extends Activity {
       }
       return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", headers, null);
     }
+    // Live HTML, JS, CSS and Vite's refresh client come from the dev server.
+    if (previewRequest) return null;
     if (path.contains("..") || path.contains("//")) {
       return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", headers, null);
     }
@@ -493,6 +501,13 @@ public class MainActivity extends Activity {
       Log.w(TAG, "No bundled file for " + path);
       return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", headers, null);
     }
+  }
+
+  static boolean calendarPageAllowed(String scheme, String host, int pagePort,
+      int requestPort, boolean mainFrame, boolean previewEnabled) {
+    return "http".equals(scheme) && LOCAL_HOST.equals(host) && !mainFrame
+        && pagePort == requestPort
+        && (pagePort == LOCAL_PORT || (previewEnabled && pagePort == PREVIEW_PORT));
   }
 
   @Override

@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { previewCalendar } from './preview-calendar.js';
 
 // The wall tablet runs Android WebView 106 — keep JS output within Chromium 106.
 // CSS targets chrome61 on purpose: the tablet's WebView rejects 4/8-digit hex colours (#0000,
@@ -7,6 +8,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [{
     name: 'reload-public-files',
+    configureServer(server) {
+      server.middlewares.use(previewCalendar);
+    },
     handleHotUpdate({ file, server }) {
       // The checklist lives in public/, outside Vite's module graph.
       if (file.startsWith(server.config.publicDir + '/')) {

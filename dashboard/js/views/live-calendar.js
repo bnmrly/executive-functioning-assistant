@@ -53,7 +53,7 @@ import { planTitle, isSchoolPlan, isOverviewPlan } from './plan-events.js';
     view.querySelector('.calendar-days').innerHTML = '';
     nextRefresh = Date.now() + 60000;
     try {
-      if (location.hostname !== '127.0.0.1' || location.port !== '8765') {
+      if (!import.meta.env.DEV && (location.hostname !== '127.0.0.1' || location.port !== '8765')) {
         throw new Error('Open the installed tablet app to see your synced calendar.');
       }
       const response = await fetch('/api/calendar?' + new URLSearchParams({ start: dateKey(week), days: '7' }), { cache: 'no-store' });
@@ -70,7 +70,7 @@ import { planTitle, isSchoolPlan, isOverviewPlan } from './plan-events.js';
         throw new Error(messages[data.status] || 'Could not load the calendar. Tap Refresh to try again.');
       }
       renderEvents(data.events);
-      status.textContent = '';
+      status.textContent = data.snapshot ? 'Preview · Google Calendar snapshot' : data.sample ? 'Preview · Sample events' : '';
     } catch (error) {
       if (currentRequest === requestId) status.textContent = error.message;
     }

@@ -2,6 +2,15 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Live tablet preview with calendar",
+      "type": "process",
+      "command": "npm",
+      "args": ["--prefix", "dashboard", "run", "dev:tablet"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
       "label": "Dashboard development server",
       "type": "process",
       "command": "npm",
@@ -15,7 +24,7 @@
       "label": "Mirror Android tablet",
       "type": "process",
       "command": "/opt/homebrew/bin/scrcpy",
-      "args": ["--select-tcpip", "--no-control", "--no-audio", "--window-title", "Android tablet — live screen", "--max-size", "1280", "--max-fps", "30"],
+      "args": ["--select-tcpip", "--no-audio", "--window-title", "Android tablet — live screen", "--max-size", "1280", "--max-fps", "30"],
       "options": {
         "env": { "ADB": "${env:HOME}/Library/Android/sdk/platform-tools/adb" }
       },

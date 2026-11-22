@@ -214,6 +214,17 @@ public class MainActivity extends Activity {
     // The offline screen covers WebView's error page until a load succeeds.
     web.setWebViewClient(new WebViewClient() {
       @Override
+      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+        return request.isForMainFrame() && openSpotify(request.getUrl());
+      }
+
+      @Override
+      @SuppressWarnings("deprecation")
+      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        return openSpotify(Uri.parse(url));
+      }
+
+      @Override
       public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
         return localAsset(req);
       }
@@ -441,6 +452,18 @@ public class MainActivity extends Activity {
   private void load(String url) {
     mainUrl = url;
     web.loadUrl(url);
+  }
+
+  private boolean openSpotify(Uri uri) {
+    if (!"https".equalsIgnoreCase(uri.getScheme())
+        || !"open.spotify.com".equalsIgnoreCase(uri.getHost())) return false;
+    try {
+      startActivity(new Intent(Intent.ACTION_VIEW, uri).setPackage("com.spotify.music"));
+      return true;
+    } catch (android.content.ActivityNotFoundException unavailable) {
+      // Devices without Spotify can still follow the web link.
+      return false;
+    }
   }
 
   private String savedUrl() {

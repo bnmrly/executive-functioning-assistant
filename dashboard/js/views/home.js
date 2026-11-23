@@ -11,6 +11,7 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
   });
   const forecastInterval = 30 * 60 * 1000;
   const retryInterval = 5 * 60 * 1000;
+  const localPreview = import.meta.env.DEV && location.hostname === 'localhost';
   // The first matching tip wins. Edit this text to suit Beth.
   const weatherTips = {
     Thunderstorms: 'Check for thunder warnings',
@@ -182,7 +183,7 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
         }).join('') + '</ol>' : '<p class="h-agenda-empty">Nothing planned</p>') + '</section>';
     }
     const source = data.snapshot ? 'Preview · Google Calendar snapshot' : data.sample ? 'Preview · Sample events' : '';
-    panel.innerHTML = (source ? '<p class="h-agenda-status">' + source + '</p>' : '') +
+    panel.innerHTML = (!localPreview && source ? '<p class="h-agenda-status">' + source + '</p>' : '') +
       section('Daytime', events.filter(event => !evening(event))) +
       section('Evening', events.filter(evening));
   }
@@ -226,16 +227,16 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
       '<div class="h-lower">' +
         '<section class="h-agenda" aria-labelledby="h-agenda-title">' +
           '<header class="h-panel-header"><h2 class="h-agenda-title" id="h-agenda-title">Today’s plan</h2>' +
-            '<button class="h-calendar-refresh" type="button" aria-label="Refresh calendar">Refresh</button></header>' +
+            (localPreview ? '' : '<button class="h-calendar-refresh" type="button" aria-label="Refresh calendar">Refresh</button>') +
+          '</header>' +
           '<div class="h-agenda-content"><p class="h-agenda-status" role="status">Loading calendar…</p></div></section>' +
-        '<section class="h-different" aria-labelledby="h-different-title">' +
-          '<h2 id="h-different-title">Different today</h2>' +
-          '<section class="h-plan-section" aria-labelledby="h-school-plan-title"><h3 id="h-school-plan-title">School plan</h3>' +
+        '<section class="h-different" aria-label="School and home plans">' +
+          '<section class="h-plan-section" aria-labelledby="h-school-plan-title"><h2 id="h-school-plan-title">School plan</h2>' +
             '<div class="h-school-plan"><p class="h-agenda-status">Loading calendar…</p></div></section>' +
-          '<section class="h-plan-section" aria-labelledby="h-home-plan-title"><h3 id="h-home-plan-title">Home plan</h3>' +
+          '<section class="h-plan-section" aria-labelledby="h-home-plan-title"><h2 id="h-home-plan-title">Home plan</h2>' +
             '<div class="h-home-plan"><p class="h-agenda-status">Loading calendar…</p></div></section>' +
           '</section></div></div>';
-    el.querySelector('.h-calendar-refresh').addEventListener('click', () => void refreshCalendar(true));
+    el.querySelector('.h-calendar-refresh')?.addEventListener('click', () => void refreshCalendar(true));
     el.querySelector('.h-agenda-content').addEventListener('click', async event => {
       if (!event.target.closest('.h-calendar-allow')) return;
       const button = event.target.closest('button');

@@ -11,7 +11,8 @@
 .h-clock { display: flex; flex-direction: column; padding-bottom: 6px; border-bottom: 3px solid var(--ink); }
 .h-time { font-size: 100px; line-height: .88; letter-spacing: -.035em; display: flex; align-items: flex-start; }
 .h-ampm { font-size: 20px; font-weight: 800; letter-spacing: .06em; margin: 4px 0 0 8px; }
-.h-date { font-size: 20px; margin-top: 8px; font-family: var(--serif); }
+.h-date, .h-wx-tip { font-family: var(--serif); }
+.h-date { font-size: 20px; margin-top: 8px; }
 .h-date b { font-family: var(--sans); font-weight: 800; font-stretch: 75%; text-transform: uppercase; letter-spacing: .06em; font-size: 17px; margin-right: 6px; }
 
 .h-weather {
@@ -22,11 +23,11 @@
 .h-wx-top { display: flex; align-items: center; gap: 10px; margin: 5px 0 8px; }
 .h-wx-temp { font-size: 38px; line-height: .95; }
 .h-wx-low { font-size: 13px; color: var(--mute); }
-.h-wx-tip { margin-top: 10px; font-size: 20px; font-weight: 700; font-style: italic; line-height: 1.15; }
+.h-wx-tip { margin-top: 10px; font-size: 24px; font-style: italic; line-height: 1.15; }
 .h-wx-tomorrow .h-wx-top { gap: 8px; }
 .h-wx-tomorrow .h-wx-top .i { width: 44px; height: 44px; }
 .h-wx-tomorrow .h-wx-temp { font-size: 30px; }
-.h-wx-tomorrow .h-wx-tip { font-size: 17px; }
+.h-wx-tomorrow .h-wx-tip { font-size: 21px; }
 .h-wx-source {
   position: absolute; top: 0; right: 0;
   display: flex; align-items: flex-start; justify-content: flex-end;
@@ -57,9 +58,7 @@
 .h-different-event { margin: 28px 0 0; font-family: var(--serif); font-size: 42px; line-height: 1.15; }
 .h-example-note { margin: 16px 0 0; color: var(--mute); font-size: 16px; }
 
-.h-plan-section { margin-top: 24px; }
-.h-plan-section + .h-plan-section { padding-top: 24px; border-top: 1px solid var(--line); }
-.h-plan-section h3 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.15; }
+.h-plan-section + .h-plan-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
 .h-plan-events { margin: 0; padding: 0; list-style: none; }
 .h-plan-events .h-different-event { margin-top: 16px; overflow-wrap: anywhere; }
 .h-different .h-agenda-empty, .h-different .h-agenda-status { color: inherit; }

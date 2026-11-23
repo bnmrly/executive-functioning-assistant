@@ -137,11 +137,11 @@ function stopCelebration(button) {
   button.querySelectorAll(".particle").forEach((particle) => particle.remove());
 }
 
-function celebrate(button, finished, pence) {
+function celebrate(button, finished) {
   if (isGrouped && finished) {
     clearTimeout(finishStartTimer);
     finishStartTimer = setTimeout(() => {
-      if (completed.size === tasks.length) celebrateFinish(pence);
+      if (completed.size === tasks.length) celebrateFinish();
     }, 900);
   }
   if (reducedMotion.matches) return;
@@ -206,7 +206,7 @@ function closeFinishCelebration() {
   }
 }
 
-function celebrateFinish(pence) {
+function celebrateFinish() {
   closeFinishCelebration();
   clearTimeout(sectionCelebrationTimer);
   sectionCelebration?.remove();
@@ -225,7 +225,6 @@ function celebrateFinish(pence) {
   title.textContent = "WELL DONE, BETH!";
   const cheer = celebrationDocument.createElement("p");
   cheer.textContent = isEvening ? "Ready for a cosy night" : "You smashed it!";
-  if (pence) cheer.textContent += " · +" + RoutinePoints.formatReward(pence);
   const dismiss = celebrationDocument.createElement("button");
   dismiss.type = "button";
   dismiss.className = "routine-celebration-dismiss";
@@ -440,10 +439,9 @@ for (const button of tasks) {
         );
       const sectionFinished =
         section && section.tasks.every(([taskId]) => completed.has(taskId));
-      let pence = 0;
       if (sectionFinished) {
         try {
-          pence = RoutinePoints.grantSection(progressDate, routine, section.key);
+          const pence = RoutinePoints.grantSection(progressDate, routine, section.key);
           if (pence) {
             moneyStatus.hidden = false;
             moneyStatus.textContent = RoutinePoints.formatReward(pence) + " earned!";
@@ -452,7 +450,7 @@ for (const button of tasks) {
           storageStatus.textContent = "Pocket money could not be saved on this device.";
         }
       }
-      celebrate(button, finished, pence);
+      celebrate(button, finished);
       if (sectionFinished && !finished) celebrateSection(section);
       if (!finished || routine !== "morning")
         void playChime(finished || sectionFinished);

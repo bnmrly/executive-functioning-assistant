@@ -1,4 +1,5 @@
 import { mountEarningsReview } from "./earnings-review.js";
+import { mountMediaEditor } from "./media-editor.js";
 import { mountRoutineEditor } from "./routine-editor.js";
 import {
   avatarUrl,
@@ -93,6 +94,7 @@ function mountParentAvatar(panel) {
 export function mountParentMode(container, child, onLock) {
   let unlocked = false;
   let timer;
+  let unmountMedia;
   const resetTimer = () => {
     clearTimeout(timer);
     timer = setTimeout(lock, timeout);
@@ -102,6 +104,8 @@ export function mountParentMode(container, child, onLock) {
     if (!unlocked) return;
     unlocked = false;
     clearTimeout(timer);
+    unmountMedia?.();
+    unmountMedia = undefined;
     container.hidden = true;
     container.replaceChildren();
     child.hidden = false;
@@ -119,13 +123,16 @@ export function mountParentMode(container, child, onLock) {
       '<button type="button" data-tool="notes">Today’s notes</button>' +
       '<button type="button" data-tool="checklists" disabled>Edit Checklists</button>' +
       '<button type="button" data-tool="earnings">Pocket money</button>' +
+      '<button type="button" data-tool="media">Media</button>' +
       '<button type="button" data-tool="avatar">Dad’s avatar</button></nav>' +
       '<section class="parent-tool" data-panel="notes"></section><section class="parent-tool" data-panel="checklists" hidden></section>' +
-      '<section class="parent-tool" data-panel="earnings" hidden></section><section class="parent-tool" data-panel="avatar" hidden></section>';
+      '<section class="parent-tool" data-panel="earnings" hidden></section><section class="parent-tool" data-panel="media" hidden></section>' +
+      '<section class="parent-tool" data-panel="avatar" hidden></section>';
     const mount = {
       notes: mountNotes,
       checklists: mountRoutineEditor,
       earnings: mountEarningsReview,
+      media: (panel) => { unmountMedia = mountMediaEditor(panel); },
       avatar: mountParentAvatar,
     };
     const renderTool = (key) => {

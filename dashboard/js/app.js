@@ -171,7 +171,7 @@
   App.go = function (name, opts) {
     opts = opts || {};
     if (name === 'todos') name = 'morning';
-    if (!App.views[name]) name = 'home';
+    if (!App.views[name] || App.views[name].canOpen?.() === false) name = 'home';
     if (App.current && App.current !== name && App.views[App.current].hide) App.views[App.current].hide();
     App.$$('.view').forEach(function (v) { v.classList.toggle('is-active', v.dataset.view === name); });
     App.$$('.rail-item').forEach(function (b) { b.classList.toggle('is-active', b.dataset.go === name); });
@@ -312,8 +312,8 @@
   App.idle = { home: 60, ambient: 120 };
   var idleSec = 0;
   function onIdleTick() {
-    // Leave the checklist visible while someone is away doing a task.
-    if (App.current === 'morning' || App.current === 'evening' || App.current === 'music') {
+    // Leave the checklist or media player visible while in use.
+    if (['morning', 'evening', 'music', 'video'].includes(App.current)) {
       idleSec = 0;
       return;
     }

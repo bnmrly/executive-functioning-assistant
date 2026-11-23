@@ -7,6 +7,7 @@ import './slideshow.js';
 import './views/home.js';
 import './views/live-calendar.js';
 import './views/profile.js';
+import './views/media.js';
 // UNUSED: import './views/calendar.js';
 // UNUSED: import './views/tasks.js';
 import './views/panels.js';

@@ -42,12 +42,6 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
     return ['cloud', 'Conditions unavailable'];
   }
 
-  function forecastSlot(label, conditions, temperature) {
-    const [icon, description] = conditions;
-    return '<div class="h-wx-hour" aria-label="' + description + '">' + label +
-      '<span>' + App.icon(icon, 36) + '<b>' + (Number.isFinite(temperature) ? Math.round(temperature) + '°' : '—') + '</b></span></div>';
-  }
-
   function forecastTip(hourly, date, after, current) {
     const conditions = new Set();
 
@@ -76,20 +70,10 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
     const [icon, summary] = condition(daily.weather_code[index], true);
     const date = daily.time[index];
     const tip = forecastTip(hourly, date, after, current);
-    const hours = hourly.time.map((time, i) => {
-      const hour = Number(time.slice(11, 13));
-      if (!time.startsWith(date) || hour < 8 || hour > 20 || hour % 4 !== 0 || time < after) return '';
-      const label = '<time datetime="' + time + '">' + (hour % 12 || 12) + (hour < 12 ? ' am' : ' pm') + '</time>';
-      return forecastSlot(label, condition(hourly.weather_code[i], hourly.is_day[i]), hourly.temperature_2m[i]);
-    }).join('');
-    const now = Number.isFinite(current?.temperature_2m)
-      ? forecastSlot('<span class="h-wx-now">Now</span>', condition(current.weather_code, current.is_day), current.temperature_2m)
-      : '';
 
-    return '<div class="h-wx-top">' + App.icon(icon, 68) +
+    return '<div class="h-wx-top">' + App.icon(icon, 60) +
       '<b class="h-wx-temp num">' + Math.round(high) + '°C</b>' +
       '<div>' + summary + '<div class="h-wx-low">Low ' + Math.round(low) + '°C</div></div></div>' +
-      (now || hours ? '<div class="h-wx-hours">' + now + hours + '</div>' : '') +
       (tip ? '<div class="h-wx-tip">' + App.esc(weatherTips[tip]) + '</div>' : '');
   }
 
@@ -121,15 +105,15 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
         latitude: chorlton.latitude,
         longitude: chorlton.longitude,
         models: 'ukmo_seamless',
-        current: 'temperature_2m,weather_code,is_day',
+        current: 'temperature_2m,weather_code',
         daily: 'temperature_2m_max,temperature_2m_min,weather_code',
-        hourly: 'temperature_2m,weather_code,is_day',
+        hourly: 'temperature_2m,weather_code',
         timezone: 'Europe/London',
         forecast_days: '3',
       });
       if (!data.daily?.time?.length || !data.hourly?.time?.length ||
           !data.daily.temperature_2m_max || !data.daily.temperature_2m_min || !data.daily.weather_code ||
-          !data.hourly.temperature_2m || !data.hourly.weather_code || !data.hourly.is_day) {
+          !data.hourly.temperature_2m || !data.hourly.weather_code) {
         throw new Error('Forecast unavailable');
       }
       forecast = data;

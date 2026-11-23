@@ -40,6 +40,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* ---------------------------------------------------------------- stage (800 tall; width set by fit() in app.js, min 1280) */
 .stage {
+  --nav-height: 68px;
   position: fixed;
   left: 0; top: 0;
   width: var(--stage-w, 1280px); height: 800px;
@@ -47,34 +48,36 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: var(--paper);
   overflow: hidden;
   display: grid;
-  grid-template-columns: 76px 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) var(--nav-height);
 }
 
 /* ---------------------------------------------------------------- rail */
 .rail {
-  display: flex; flex-direction: column;
-  padding: 8px 0 12px;
-  border-right: 2px solid var(--ink);
+  grid-area: 2 / 1;
+  position: relative;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 0 96px;
+  border-top: 1px solid var(--line);
   background: var(--paper);
   z-index: 5;
 }
 .rail-item {
-  height: 72px;
+  flex: 0 0 108px; height: 54px; border-radius: 12px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
   font-size: 12px; font-weight: 700; font-stretch: 70%; letter-spacing: .07em; text-transform: uppercase;
   color: var(--ink-2);
   position: relative;
 }
-.rail-item.is-active { background: var(--ink); color: var(--paper); }
 .rail-item:active { background: var(--paper-2); }
-.rail-item.is-active:active { background: var(--ink-2); }
-.rail-clock { margin-top: auto; padding: 10px 0; text-align: center; line-height: 1; position: relative; overflow: hidden; }
+.rail-item.is-active { background: var(--line); color: var(--ink); }
+.rail-clock { position: absolute; left: 16px; top: 50%; width: 64px; transform: translateY(-50%); text-align: center; line-height: 1; }
 .rail-clock.is-holding { background: var(--paper-2); }
 .rail-clock b { display: block; font-size: 24px; font-weight: 800; font-stretch: 62%; font-variant-numeric: tabular-nums; }
 .rail-clock span { font-size: 12px; font-weight: 700; letter-spacing: .1em; color: var(--mute); }
 
 /* ---------------------------------------------------------------- views */
-.views { position: relative; overflow: hidden; }
+.views { grid-area: 1 / 1; position: relative; overflow: hidden; }
 .view { position: absolute; top: 0; right: 0; bottom: 0; left: 0; padding: var(--pad); content-visibility: hidden; z-index: 0; }
 .view.is-active, .view.is-warming { content-visibility: visible; }
 .view.is-active { z-index: 1; }
@@ -215,7 +218,7 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(.985); }
 .ring-fg { fill: none; stroke: var(--c); stroke-width: 7; stroke-linecap: round; }
 
 /* ---------------------------------------------------------------- toasts */
-.toasts { position: absolute; left: 76px; right: 0; bottom: 24px; display: flex; justify-content: center; pointer-events: none; z-index: 60; }
+.toasts { position: absolute; left: 0; right: 0; bottom: calc(24px + var(--nav-height)); display: flex; justify-content: center; pointer-events: none; z-index: 60; }
 .toast {
   pointer-events: auto;
   min-height: 72px; max-width: 760px; padding: 0 10px 0 24px;

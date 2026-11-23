@@ -34,6 +34,7 @@ if (isGrouped) {
   sections.forEach((group) => {
     const section = document.createElement("section");
     section.className = "morning-group" + (customRoutine ? "" : " morning-group--" + group.key);
+    section.dataset.accent = group.accent;
     const heading = document.createElement("h2");
     heading.id = routine + "-" + group.key;
     heading.textContent = group.name;

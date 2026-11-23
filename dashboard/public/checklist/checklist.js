@@ -114,7 +114,7 @@ const progressRing = document.getElementById("progress-ring");
 const progressPercent = document.getElementById("progress-percent");
 const progressLabel = document.getElementById("progress-label");
 const allDone = document.getElementById("all-done");
-const pointsStatus = document.getElementById("points-earned");
+const moneyStatus = document.getElementById("money-earned");
 const storageStatus = document.getElementById("storage-status");
 const storageKey =
   routine === "morning"
@@ -182,11 +182,11 @@ function stopCelebration(button) {
   button.querySelectorAll(".particle").forEach((particle) => particle.remove());
 }
 
-function celebrate(button, finished, points) {
+function celebrate(button, finished, pence) {
   if (isGrouped && finished) {
     clearTimeout(finishStartTimer);
     finishStartTimer = setTimeout(() => {
-      if (completed.size === tasks.length) celebrateFinish(points);
+      if (completed.size === tasks.length) celebrateFinish(pence);
     }, 900);
   }
   if (reducedMotion.matches) return;
@@ -251,7 +251,7 @@ function closeFinishCelebration() {
   }
 }
 
-function celebrateFinish(points) {
+function celebrateFinish(pence) {
   closeFinishCelebration();
   clearTimeout(sectionCelebrationTimer);
   sectionCelebration?.remove();
@@ -270,7 +270,7 @@ function celebrateFinish(points) {
   title.textContent = "WELL DONE, BETH!";
   const cheer = celebrationDocument.createElement("p");
   cheer.textContent = isEvening ? "Ready for a cosy night" : "You smashed it!";
-  if (points) cheer.textContent += " · +" + points + (points === 1 ? " point" : " points");
+  if (pence) cheer.textContent += " · +" + RoutinePoints.formatReward(pence);
   const dismiss = celebrationDocument.createElement("button");
   dismiss.type = "button";
   dismiss.className = "routine-celebration-dismiss";
@@ -451,7 +451,7 @@ function resetOnNewDay() {
   if (today === progressDate) return;
   progressDate = today;
   completed.clear();
-  pointsStatus.hidden = true;
+  moneyStatus.hidden = true;
   closeFinishCelebration();
   sectionCelebration?.remove();
   for (const button of tasks) stopCelebration(button);
@@ -482,22 +482,19 @@ for (const button of tasks) {
         );
       const sectionFinished =
         section && section.tasks.every(([taskId]) => completed.has(taskId));
-      let points = 0;
-      if (isGrouped && (sectionFinished || finished)) {
-        const awards = [];
-        if (sectionFinished) awards.push("section:" + section.key);
-        if (finished) awards.push("routine");
+      let pence = 0;
+      if (sectionFinished) {
         try {
-          points = RoutinePoints.grant(progressDate, routine, awards);
-          if (points) {
-            pointsStatus.hidden = false;
-            pointsStatus.textContent = "+" + points + (points === 1 ? " point earned!" : " points earned!");
+          pence = RoutinePoints.grantSection(progressDate, routine, section.key);
+          if (pence) {
+            moneyStatus.hidden = false;
+            moneyStatus.textContent = RoutinePoints.formatReward(pence) + " earned!";
           }
         } catch {
-          storageStatus.textContent = "Points could not be saved on this device.";
+          storageStatus.textContent = "Pocket money could not be saved on this device.";
         }
       }
-      celebrate(button, finished, points);
+      celebrate(button, finished, pence);
       if (sectionFinished && !finished) celebrateSection(section);
       if (!finished || routine !== "morning")
         void playChime(finished || sectionFinished);

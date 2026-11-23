@@ -1,4 +1,4 @@
-const points = window.RoutinePoints;
+const pocketMoney = window.RoutinePoints;
 const portraitKey = 'dashboard-profile-portrait-v1';
 const avatars = [
   ['Fox', '1F98A'], ['Cat', '1F431'], ['Panda', '1F43C'],
@@ -9,14 +9,13 @@ const shortDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'sho
 const weekDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 const fullDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const monthDate = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
-const money = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
-const pointLabel = total => total === 1 ? '1 point' : total + ' points';
+const { formatMoney, formatReward } = pocketMoney;
 const avatarUrl = id => '/avatars/' + id + '.svg';
 
 let view;
 let period = 'day';
 let selectedDate;
-let currentDay = points.dayKey();
+let currentDay = pocketMoney.dayKey();
 let portraitRequest = 0;
 
 function periodStart(date) {
@@ -32,8 +31,8 @@ function periodEnd(start) {
 
 function updateDate() {
   const today = App.dayStart(new Date());
-  const key = points.dayKey(today);
-  if (!selectedDate || (currentDay !== key && points.dayKey(selectedDate) === currentDay)) selectedDate = today;
+  const key = pocketMoney.dayKey(today);
+  if (!selectedDate || (currentDay !== key && pocketMoney.dayKey(selectedDate) === currentDay)) selectedDate = today;
   currentDay = key;
   return today;
 }
@@ -111,29 +110,25 @@ async function loadPhoto(file) {
   }
 }
 
-function dayTotal(day) {
-  return (day?.morning?.points ?? 0) + (day?.evening?.points ?? 0);
-}
-
 function dayDetails(day, isToday) {
-  return '<ul class="profile-rows">' + routines.map(([label, id]) => {
-    const result = day?.[id];
-    let bonus = '';
-    if (result?.bonus) bonus = '<small>Includes 1 bonus point</small>';
-    else if (isToday && result?.finished) {
-      bonus = '<button type="button" data-bonus="' + id +
-        '" aria-label="Award bonus point for ' + label.toLowerCase() + '">Award bonus point</button>';
-    }
-    return '<li><span>' + label + '</span>' + bonus + '<strong>' + pointLabel(result?.points ?? 0) + '</strong></li>';
-  }).join('') + '</ul>' + (isToday && Object.values(day ?? {}).some(row => row.finished && !row.bonus)
-    ? '<p class="profile-hint">Grown-ups can add a bonus for a routine that went smoothly.</p>' : '');
+  const bonus = day?.bonus ?? 0;
+  const limitReached = (day?.bonusCount ?? 0) >= pocketMoney.maxDailyBonus;
+  const routineRows = routines.map(([label, id]) =>
+    '<li><span>' + label + '</span><strong>' + formatMoney(day?.[id] ?? 0) + '</strong></li>'
+  ).join('');
+  const bonusRow = isToday
+    ? '<li><span>Adult bonus</span><strong>' + formatMoney(bonus) + '</strong>' +
+      '<button type="button" data-daily-bonus' + (limitReached ? ' disabled>Bonus limit reached' : '>Add a bonus') +
+      '</button></li>'
+    : bonus ? '<li><span>Adult bonus</span><strong>' + formatMoney(bonus) + '</strong></li>' : '';
+  return '<ul class="profile-rows">' + routineRows + bonusRow + '</ul>';
 }
 
 function render() {
   const today = updateDate();
   const start = periodStart(selectedDate);
   const end = periodEnd(start);
-  const current = points.dayKey(start) === points.dayKey(periodStart(today));
+  const current = pocketMoney.dayKey(start) === pocketMoney.dayKey(periodStart(today));
   const content = view.querySelector('.profile-period-content');
   for (const button of view.querySelectorAll('[data-period]')) {
     button.setAttribute('aria-pressed', String(period === button.dataset.period));
@@ -144,24 +139,29 @@ function render() {
     : fullDate.format(start);
 
   try {
-    const history = points.history();
-    const lifetime = [...history.values()].reduce((sum, day) => sum + dayTotal(day), 0);
-    view.querySelector('.profile-lifetime').textContent = lifetime;
+    const history = pocketMoney.moneyHistory();
+    const lifetime = [...history.values()].reduce((sum, day) => sum + day.pence, 0);
+    view.querySelector('.profile-lifetime').textContent = formatMoney(lifetime);
     const rows = [];
     let total = 0;
+    let bonusPence = 0;
     for (let date = start; date < end && date <= today; date = App.addDays(date, 1)) {
-      const count = dayTotal(history.get(points.dayKey(date)));
-      total += count;
-      rows.push('<li><span>' + shortDate.format(date) + '</span><strong>' + pointLabel(count) + '</strong></li>');
+      const day = history.get(pocketMoney.dayKey(date));
+      const pence = day?.pence ?? 0;
+      total += pence;
+      bonusPence += day?.bonus ?? 0;
+      rows.push('<li><span>' + shortDate.format(date) + '</span><strong>' + formatMoney(pence) + '</strong></li>');
     }
-    const pocketMoney = period === 'week'
-      ? '<div class="profile-money"><span>Pocket money</span><strong>' +
-        money.format(points.weeklyPence(total) / 100) + ' of £5.00</strong></div>' : '';
-    content.innerHTML = '<p class="profile-period-total">' + pointLabel(total) + '</p>' + pocketMoney +
-      (period === 'day' ? dayDetails(history.get(points.dayKey(start)), current)
+    const heading = period === 'week'
+      ? '<div class="profile-money"><span>Week total' +
+        (bonusPence ? '<small>Includes ' + formatMoney(bonusPence) + ' in bonuses</small>' : '') +
+        '</span><strong>' + formatMoney(total) + ' earned</strong></div>'
+      : '<p class="profile-period-total">' + formatMoney(total) + ' earned</p>';
+    content.innerHTML = heading +
+      (period === 'day' ? dayDetails(history.get(pocketMoney.dayKey(start)), current)
         : '<ul class="profile-rows">' + rows.join('') + '</ul>');
   } catch {
-    content.textContent = 'Points could not be loaded on this device.';
+    content.textContent = 'Pocket money could not be loaded on this device.';
   }
 }
 
@@ -179,8 +179,8 @@ function mount(el) {
       '" alt=""><span>' + label + '</span></button>').join('') + '</div>' +
     '<p class="profile-credit">Artwork by OpenMoji · CC BY-SA 4.0</p></div></section>' +
     '<section class="profile-points" aria-labelledby="profile-points-title"><div class="profile-points-heading">' +
-    '<h2 id="profile-points-title">Points earned</h2><strong class="profile-lifetime">0</strong><span>All time</span></div>' +
-    '<div class="profile-periods" role="group" aria-label="Points period">' +
+    '<h2 id="profile-points-title">Pocket money</h2><strong class="profile-lifetime">£0.00</strong><span>All time</span></div>' +
+    '<div class="profile-periods" role="group" aria-label="Pocket money period">' +
     ['Day', 'Week', 'Month'].map(label => '<button type="button" data-period="' + label.toLowerCase() + '">' + label + '</button>').join('') +
     '</div><div class="profile-pager"><button type="button" data-move="-1" aria-label="Previous period">←</button>' +
     '<h3 class="profile-date"></h3><button type="button" data-move="1" aria-label="Next period">→</button></div>' +
@@ -216,15 +216,18 @@ function mount(el) {
       if (button.dataset.period) period = button.dataset.period;
       else selectedDate = movePeriod(Number(button.dataset.move));
       render();
-    } else if (button.dataset.bonus) {
-      if (points.dayKey(selectedDate) !== points.dayKey()) {
+    } else if (button.hasAttribute('data-daily-bonus')) {
+      if (pocketMoney.dayKey(selectedDate) !== pocketMoney.dayKey()) {
         render();
         return;
       }
       try {
-        const added = points.grant(points.dayKey(selectedDate), button.dataset.bonus, ['bonus']);
+        const added = pocketMoney.addDailyBonus();
         render();
-        bonusStatus.textContent = added ? '1 bonus point added!' : 'This bonus is already recorded.';
+        bonusStatus.textContent = added === null ? 'Today’s bonus limit has been reached.'
+          : added === 0 ? 'Bonus saved.' : formatReward(added) + ' bonus added!';
+        const nextButton = el.querySelector('[data-daily-bonus]:enabled');
+        nextButton?.focus();
       } catch {
         bonusStatus.textContent = 'Could not save this bonus on this device.';
       }
@@ -245,8 +248,8 @@ function show(el) {
 
 App.register('profile', { show, resume: show });
 App.on('minute', () => {
-  if (App.current === 'profile' && currentDay !== points.dayKey()) render();
+  if (App.current === 'profile' && currentDay !== pocketMoney.dayKey()) render();
 });
 window.addEventListener('storage', event => {
-  if (App.current === 'profile' && (event.key === null || event.key.startsWith(points.prefix))) render();
+  if (App.current === 'profile' && (event.key === null || event.key.startsWith(pocketMoney.prefix))) render();
 });

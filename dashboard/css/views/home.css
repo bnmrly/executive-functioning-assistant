@@ -61,4 +61,5 @@
 .h-plan-section + .h-plan-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
 .h-plan-events { margin: 0; padding: 0; list-style: none; }
 .h-plan-events .h-different-event { margin-top: 16px; overflow-wrap: anywhere; }
+.h-plan-note { margin-top: 16px; overflow-wrap: anywhere; white-space: pre-wrap; }
 .h-different .h-agenda-empty, .h-different .h-agenda-status { color: inherit; }

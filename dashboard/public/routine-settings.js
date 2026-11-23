@@ -1,0 +1,85 @@
+(function () {
+  'use strict';
+
+  const morningSections = [
+    {
+      name: RoutinePoints.sectionNames.toilet,
+      key: "toilet",
+      accent: "water",
+      tasks: [
+        ["toilet", "Go to the toilet"],
+        ["wipe", "Wipe myself"],
+        ["wash-hands", "Wash my hands"],
+        ["dry-hands", "Dry my hands"],
+      ],
+    },
+    {
+      name: RoutinePoints.sectionNames.care,
+      key: "care",
+      accent: "teeth",
+      tasks: [
+        ["clean-teeth", "Clean my teeth"],
+        ["wash-face", "Wash my face"],
+      ],
+    },
+    {
+      name: RoutinePoints.sectionNames.dressed,
+      key: "dressed",
+      accent: "bag",
+      tasks: [
+        ["pants", "Put pants on"],
+        ["socks", "Put socks on"],
+        ["dress-leggings", "Put dress or leggings on"],
+        ["top", "Put top on"],
+        ["cardigan", "Put cardigan on"],
+      ],
+    },
+    {
+      name: RoutinePoints.sectionNames.hair,
+      key: "hair",
+      accent: "teeth",
+      tasks: [["hair", "Get Mummy or Daddy to brush my hair"]],
+    },
+  ];
+
+  const eveningSections = [
+    morningSections[0],
+    morningSections[1],
+    { name: RoutinePoints.sectionNames.bedtime, key: "bedtime", accent: "bag", tasks: [["pyjamas", "Put on pyjamas"]] },
+    { name: RoutinePoints.sectionNames.clean, key: "clean", accent: "teeth", tasks: [["clean-something", "Clean something"]] },
+  ];
+
+  const defaults = { morning: morningSections, evening: eveningSections };
+  const routineKey = routine => 'dashboard-routine-v1:' + routine;
+  const noteKey = date => 'dashboard-plan-note-v1:' + date;
+
+  function read(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+    catch { return fallback; }
+  }
+
+  function sections(routine) {
+    const fallback = defaults[routine];
+    if (!fallback) return [];
+    const saved = read(routineKey(routine), null);
+    return structuredClone(Array.isArray(saved) && saved.length ? saved : fallback);
+  }
+
+  function saveSections(routine, groups) {
+    if (!defaults[routine] || !groups.length || groups.some(group =>
+      !group.name.trim() || !group.tasks.length || group.tasks.some(([, title]) => !title.trim())
+    )) throw new Error('Each routine needs at least one named section and each section needs a task.');
+    localStorage.setItem(routineKey(routine), JSON.stringify(groups));
+  }
+
+  function notes(date) { return read(noteKey(date), {}); }
+  function saveNotes(date, values) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Choose a date for these notes.');
+    localStorage.setItem(noteKey(date), JSON.stringify(values));
+  }
+
+  window.DashboardRoutines = {
+    routineKey, sections, saveSections, notes, saveNotes,
+    isCustom: routine => Array.isArray(read(routineKey(routine), null)),
+  };
+})();

@@ -1,6 +1,6 @@
 .profile {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 13fr) minmax(0, 5fr);
   gap: 20px;
   height: 100%;
   min-height: 0;
@@ -36,7 +36,8 @@
 }
 .profile-portrait img { width: 100%; height: 100%; object-fit: cover; }
 .profile-actions, .profile-periods { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-.profile button {
+.profile[hidden] { display: none; }
+:is(.profile, .parent-area, .profile-earnings-review) button {
   min-height: 44px;
   padding: 7px 13px;
   border: 1px solid var(--line);
@@ -46,9 +47,9 @@
   font-size: 17px;
   font-weight: 700;
 }
-.profile button[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
-.profile button:disabled { opacity: .45; cursor: default; }
-.profile button:focus-visible { outline: 3px solid var(--checklist-focus); outline-offset: 2px; }
+:is(.profile, .parent-area) button[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
+:is(.profile, .parent-area, .profile-earnings-review) button:disabled { opacity: .45; cursor: default; }
+:is(.profile, .parent-area, .profile-earnings-review) button:focus-visible { outline: 3px solid var(--checklist-focus); outline-offset: 2px; }
 .profile-avatar-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 16px 0 0; }
 .profile-avatar-grid button { display: grid; justify-items: center; gap: 2px; padding: 5px; }
 .profile-avatar-grid img { width: 52px; height: 52px; }
@@ -78,3 +79,86 @@
 .profile-rows li > span { margin-right: auto; }
 .profile-rows strong { white-space: nowrap; }
 .profile-rows small, .profile-hint { color: var(--ink-2); font-size: 16px; }
+.profile-placeholder button { margin-top: 12px; }
+.profile-earnings-review {
+  width: min(94vw, 550px);
+  max-height: 90vh;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--card);
+  color: var(--ink);
+}
+.profile-earnings-review::backdrop { background: rgb(var(--black-rgb) / .45); }
+.profile-earnings-review h2 { margin-bottom: 12px; font-size: 27px; font-weight: 800; }
+.profile-review-fields { display: grid; gap: 10px; }
+.profile-review-fields label { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.profile-review-fields input[type="password"] {
+  width: 9ch; min-height: 44px; padding: 6px 10px; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--paper); color: var(--ink); font: inherit;
+}
+.profile-review-error:not(:empty) { margin-top: 10px; color: var(--pastel-red); }
+.profile-review-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+.parent-area {
+  height: 100%;
+  overflow: auto;
+  padding: clamp(16px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--card);
+}
+.parent-area > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.parent-area h1 { margin: 0; font: 400 50px/1 var(--serif); }
+.parent-area > header p { margin: 6px 0 0; color: var(--ink-2); }
+.parent-tools, .parent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.parent-tool {
+  max-width: 840px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.parent-notes { display: grid; gap: 12px; }
+.parent-notes label { display: grid; gap: 4px; font-weight: 700; }
+.parent-notes input { justify-self: start; }
+.parent-notes textarea { resize: vertical; }
+.parent-tool :is(input:not([type="checkbox"]), textarea, select) {
+  min-height: 44px;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+.parent-tool fieldset {
+  min-width: 0;
+  margin: 12px 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.parent-tool legend { font-weight: 700; }
+.parent-editor-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.parent-editor-row input { flex: 1 1 12rem; }
+.parent-earnings-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 8px;
+}
+.parent-earnings-fields label { display: flex; align-items: center; gap: 8px; min-height: 36px; }
+.parent-earnings-fields input { width: 20px; height: 20px; accent-color: var(--ink); }
+.parent-status { margin-top: 8px; }
+.parent-status:empty { display: none; }

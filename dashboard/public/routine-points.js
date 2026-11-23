@@ -3,6 +3,10 @@
 
   const prefix = 'dashboard-points-v1:';
   const routines = ['morning', 'evening'];
+  const sectionNames = Object.freeze({
+    toilet: 'Toilet', care: 'Teeth and face', dressed: 'Getting dressed', hair: 'Hair',
+    bedtime: 'Ready for bed', clean: 'Clean',
+  });
   const maxDailyBonus = 2;
   const maxWeeklyBonus = 7 * maxDailyBonus;
   const weeklyChangeKey = 'dashboard-points-weekly-change-v2';
@@ -32,6 +36,41 @@
   function awards(date, routine) {
     const saved = JSON.parse(localStorage.getItem(prefix + date + ':' + routine));
     return new Set(Array.isArray(saved) ? saved : []);
+  }
+
+  function sectionAwards(date, routine) {
+    return [...awards(date, routine)]
+      .filter(id => id.startsWith('section:'))
+      .map(id => id.slice('section:'.length));
+  }
+
+  function corrections(date) {
+    return JSON.parse(localStorage.getItem(prefix + date + ':corrections')) || {};
+  }
+
+  function reviewSections(date) {
+    const saved = corrections(date);
+    return routines.map(routine => ({
+      routine,
+      sections: sectionAwards(date, routine).map(id => ({
+        id,
+        label: window.DashboardRoutines?.sections(routine).find(section => section.key === id)?.name || sectionNames[id] || 'Removed section',
+        counted: !saved[routine]?.includes(id),
+      })),
+    }));
+  }
+
+  function correctSections(date, decisions) {
+    if (date !== dayKey()) throw new Error('The day has changed. Open the review again.');
+    const saved = corrections(date);
+    const excluded = {};
+    for (const routine of routines) {
+      const choices = decisions.get(routine);
+      excluded[routine] = sectionAwards(date, routine).filter(id =>
+        choices?.has(id) ? !choices.get(id) : saved[routine]?.includes(id)
+      );
+    }
+    localStorage.setItem(prefix + date + ':corrections', JSON.stringify(excluded));
   }
 
   function grantSection(date, routine, section) {
@@ -71,7 +110,8 @@
         day.bonusPoints += earned.size;
       } else {
         // The automatic completion award belongs only to weeks under the old rules.
-        day[routine] = [...earned].filter(id => id.startsWith('section:')).length +
+        const excluded = corrections(date)[routine];
+        day[routine] = [...earned].filter(id => id.startsWith('section:') && !excluded?.includes(id.slice('section:'.length))).length +
           (date < firstWeek && earned.has('routine') ? 2 : 0);
         if (earned.has('bonus')) day.bonusPoints++;
       }
@@ -159,6 +199,6 @@
   dateLegacyProgress();
   window.RoutinePoints = {
     dayKey, grantSection, addDailyBonus, moneyHistory, formatMoney, formatReward,
-    prefix, maxDailyBonus, balanceStartKey,
+    prefix, maxDailyBonus, balanceStartKey, sectionNames, reviewSections, correctSections,
   };
 })();

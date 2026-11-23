@@ -1,22 +1,22 @@
+import { mountParentMode } from './parent-mode.js';
+import { mountParentPin } from './parent-pin.js';
+import { avatarUrl, avatars, childPortrait, childPortraitKey, paintNavPortrait } from './profile-portraits.js';
+
 const pocketMoney = window.RoutinePoints;
-const portraitKey = 'dashboard-profile-portrait-v1';
-const avatars = [
-  ['Fox', '1F98A'], ['Cat', '1F431'], ['Panda', '1F43C'],
-  ['Unicorn', '1F984'], ['Dinosaur', '1F996'], ['Butterfly', '1F98B'],
-];
 const routines = [['Morning', 'morning'], ['Evening', 'evening']];
 const shortDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
 const weekDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 const fullDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const monthDate = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
-const { formatMoney, formatReward } = pocketMoney;
-const avatarUrl = id => '/avatars/' + id + '.svg';
+const { formatMoney } = pocketMoney;
 
 let view;
 let period = 'day';
 let selectedDate;
 let currentDay = pocketMoney.dayKey();
 let portraitRequest = 0;
+let parentMode;
+let parentPin;
 
 function periodStart(date) {
   if (period === 'month') return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -45,14 +45,12 @@ function movePeriod(direction) {
 
 function showPortrait() {
   const display = view.querySelector('.profile-portrait');
-  const saved = JSON.parse(localStorage.getItem(portraitKey));
-  const avatar = avatars.find(([, id]) => saved?.avatar === id);
-  const photo = typeof saved?.photo === 'string' && saved.photo.startsWith('data:image/jpeg;base64,');
+  const { avatar, photo } = childPortrait();
   display.textContent = 'B';
   if (avatar || photo) {
     const image = document.createElement('img');
     image.alt = avatar ? avatar[0] + ' avatar' : 'Beth’s photo';
-    image.src = avatar ? avatarUrl(avatar[1]) : saved.photo;
+    image.src = avatar ? avatarUrl(avatar[1]) : photo;
     display.replaceChildren(image);
   }
   view.querySelector('.profile-photo-button').textContent = photo ? 'Change photo' : 'Add photo';
@@ -65,9 +63,9 @@ function showPortrait() {
 function savePortrait(choice) {
   portraitRequest++;
   try {
-    if (choice) localStorage.setItem(portraitKey, JSON.stringify(choice));
-    else localStorage.removeItem(portraitKey);
+    localStorage.setItem(childPortraitKey, JSON.stringify(choice ?? {}));
     showPortrait();
+    paintNavPortrait();
     setPortraitStatus('');
     return true;
   } catch {
@@ -110,17 +108,12 @@ async function loadPhoto(file) {
   }
 }
 
-function dayDetails(day, isToday) {
+function dayDetails(day) {
   const bonus = day?.bonus ?? 0;
-  const limitReached = (day?.bonusCount ?? 0) >= pocketMoney.maxDailyBonus;
   const routineRows = routines.map(([label, id]) =>
     '<li><span>' + label + '</span><strong>' + formatMoney(day?.[id] ?? 0) + '</strong></li>'
   ).join('');
-  const bonusRow = isToday
-    ? '<li><span>Adult bonus</span><strong>' + formatMoney(bonus) + '</strong>' +
-      '<button type="button" data-daily-bonus' + (limitReached ? ' disabled>Bonus limit reached' : '>Add a bonus') +
-      '</button></li>'
-    : bonus ? '<li><span>Adult bonus</span><strong>' + formatMoney(bonus) + '</strong></li>' : '';
+  const bonusRow = bonus ? '<li><span>Adult bonus</span><strong>' + formatMoney(bonus) + '</strong></li>' : '';
   return '<ul class="profile-rows">' + routineRows + bonusRow + '</ul>';
 }
 
@@ -158,7 +151,7 @@ function render() {
         '</span><strong>' + formatMoney(total) + ' earned</strong></div>'
       : '<p class="profile-period-total">' + formatMoney(total) + ' earned</p>';
     content.innerHTML = heading +
-      (period === 'day' ? dayDetails(history.get(pocketMoney.dayKey(start)), current)
+      (period === 'day' ? dayDetails(history.get(pocketMoney.dayKey(start)))
         : '<ul class="profile-rows">' + rows.join('') + '</ul>');
   } catch {
     content.textContent = 'Pocket money could not be loaded on this device.';
@@ -173,7 +166,7 @@ function mount(el) {
     ['Day', 'Week', 'Month'].map(label => '<button type="button" data-period="' + label.toLowerCase() + '">' + label + '</button>').join('') +
     '</div><div class="profile-pager"><button type="button" data-move="-1" aria-label="Previous period">←</button>' +
     '<h3 class="profile-date"></h3><button type="button" data-move="1" aria-label="Next period">→</button></div>' +
-    '<div class="profile-period-content"></div><p class="profile-points-status" role="status"></p></section>' +
+    '<div class="profile-period-content"></div></section>' +
     '<div class="profile-side">' +
     '<section class="profile-identity" aria-labelledby="profile-name">' +
     '<h1 id="profile-name">Beth</h1><div class="profile-portrait">B</div>' +
@@ -187,12 +180,24 @@ function mount(el) {
       '" alt=""><span>' + label + '</span></button>').join('') + '</div>' +
     '<p class="profile-credit">Artwork by OpenMoji · CC BY-SA 4.0</p></div></section>' +
     '<section class="profile-placeholder" aria-labelledby="profile-placeholder-title">' +
-    '<h2 id="profile-placeholder-title">Placeholder</h2></section></div></div>';
+    '<h2 id="profile-placeholder-title">Parent mode</h2><button type="button" data-parent-mode>Open Parent mode</button></section></div></div>' +
+    '<section class="parent-area" hidden></section>' +
+    '<dialog class="profile-earnings-review" aria-labelledby="profile-review-title">' +
+    '<h2 id="profile-review-title">Unlock Dad’s profile</h2>' +
+    '<div class="profile-review-fields"></div><p class="profile-review-error" role="alert"></p>' +
+    '<div class="profile-review-actions"><button type="button" data-close-review>Cancel</button>' +
+    '<button type="button" data-unlock-parent>Unlock</button></div></dialog>';
 
   const file = el.querySelector('#profile-photo');
   const picker = el.querySelector('#profile-avatars');
   const chooseAvatar = el.querySelector('[data-choose-avatar]');
-  const bonusStatus = el.querySelector('.profile-points-status');
+  const parentEntry = el.querySelector('[data-parent-mode]');
+  parentMode = mountParentMode(el.querySelector('.parent-area'), el.querySelector('.profile'), () => {
+    render();
+    if (App.current === 'profile') parentEntry.focus();
+  });
+  parentPin = mountParentPin(el.querySelector('.profile-earnings-review'), parentMode.open);
+  parentEntry.addEventListener('click', () => parentPin.open());
   const photoButton = el.querySelector('.profile-photo-button');
   photoButton.addEventListener('click', () => file.click());
   file.addEventListener('change', () => {
@@ -215,25 +220,9 @@ function mount(el) {
         chooseAvatar.focus();
       }
     } else if (button.dataset.period || button.dataset.move) {
-      bonusStatus.textContent = '';
       if (button.dataset.period) period = button.dataset.period;
       else selectedDate = movePeriod(Number(button.dataset.move));
       render();
-    } else if (button.hasAttribute('data-daily-bonus')) {
-      if (pocketMoney.dayKey(selectedDate) !== pocketMoney.dayKey()) {
-        render();
-        return;
-      }
-      try {
-        const added = pocketMoney.addDailyBonus();
-        render();
-        bonusStatus.textContent = added === null ? 'Today’s bonus limit has been reached.'
-          : added === 0 ? 'Bonus saved.' : formatReward(added) + ' bonus added!';
-        const nextButton = el.querySelector('[data-daily-bonus]:enabled');
-        nextButton?.focus();
-      } catch {
-        bonusStatus.textContent = 'Could not save this bonus on this device.';
-      }
     }
   });
   try {
@@ -249,7 +238,12 @@ function show(el) {
   render();
 }
 
-App.register('profile', { show, resume: show });
+paintNavPortrait();
+App.register('profile', {
+  show,
+  resume: show,
+  hide() { parentPin?.close(); parentMode?.lock(); },
+});
 App.on('minute', () => {
   if (App.current === 'profile' && currentDay !== pocketMoney.dayKey()) render();
 });

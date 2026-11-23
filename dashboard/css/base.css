@@ -71,6 +71,16 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .rail-item:active { background: var(--paper-2); }
 .rail-item.is-active { background: var(--line); color: var(--ink); }
+.rail-profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--paper-2);
+}
+.rail-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .rail-clock { position: absolute; right: 16px; top: 50%; width: 64px; transform: translateY(-50%); text-align: center; line-height: 1; }
 .rail-clock.is-holding { background: var(--paper-2); }
 .rail-clock b { display: block; font-size: 24px; font-weight: 800; font-stretch: 62%; font-variant-numeric: tabular-nums; }

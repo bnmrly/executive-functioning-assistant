@@ -1,55 +1,9 @@
 const routine = new URLSearchParams(location.search).get("routine");
 let celebrationDocument = document;
-const morningSections = [
-  {
-    name: "Toilet",
-    key: "toilet",
-    accent: "water",
-    tasks: [
-      ["toilet", "Go to the toilet"],
-      ["wipe", "Wipe myself"],
-      ["wash-hands", "Wash my hands"],
-      ["dry-hands", "Dry my hands"],
-    ],
-  },
-  {
-    name: "Teeth and face",
-    key: "care",
-    accent: "teeth",
-    tasks: [
-      ["clean-teeth", "Clean my teeth"],
-      ["wash-face", "Wash my face"],
-    ],
-  },
-  {
-    name: "Getting dressed",
-    key: "dressed",
-    accent: "bag",
-    tasks: [
-      ["pants", "Put pants on"],
-      ["socks", "Put socks on"],
-      ["dress-leggings", "Put dress or leggings on"],
-      ["top", "Put top on"],
-      ["cardigan", "Put cardigan on"],
-    ],
-  },
-  {
-    name: "Hair",
-    key: "hair",
-    accent: "teeth",
-    tasks: [["hair", "Get Mummy or Daddy to brush my hair"]],
-  },
-];
-
-const eveningSections = [
-  morningSections[0],
-  morningSections[1],
-  { name: "Ready for bed", key: "bedtime", accent: "bag", tasks: [["pyjamas", "Put on pyjamas"]] },
-  { name: "Clean", key: "clean", accent: "teeth", tasks: [["clean-something", "Clean something"]] },
-];
 const isEvening = routine === "evening";
 const isGrouped = routine === "morning" || isEvening;
-const sections = isEvening ? eveningSections : morningSections;
+const sections = DashboardRoutines.sections(routine);
+const customRoutine = isGrouped && DashboardRoutines.isCustom(routine);
 
 if (isGrouped) {
   document.documentElement.dataset.routine = routine;
@@ -79,7 +33,7 @@ if (isGrouped) {
   document.querySelector(".tasks").replaceWith(groups);
   sections.forEach((group) => {
     const section = document.createElement("section");
-    section.className = "morning-group morning-group--" + group.key;
+    section.className = "morning-group" + (customRoutine ? "" : " morning-group--" + group.key);
     const heading = document.createElement("h2");
     heading.id = routine + "-" + group.key;
     heading.textContent = group.name;
@@ -460,6 +414,9 @@ function resetOnNewDay() {
 }
 
 if (isGrouped) {
+  window.addEventListener("storage", event => {
+    if (event.key === DashboardRoutines.routineKey(routine)) location.reload();
+  });
   window.addEventListener("focus", resetOnNewDay);
   document.addEventListener("visibilitychange", resetOnNewDay);
   setInterval(resetOnNewDay, 15_000);

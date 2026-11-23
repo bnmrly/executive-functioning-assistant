@@ -20,6 +20,8 @@
   background: var(--card);
 }
 .profile-identity { text-align: center; }
+.profile-points { background: var(--paper-2); }
+.profile-placeholder { background: var(--overview-green-bg); color: var(--overview-green); }
 .profile-placeholder h2 { font-size: 28px; font-weight: 800; }
 .profile h1 { margin: 0 0 16px; font: 400 68px/1 var(--serif); }
 .profile-portrait {
@@ -60,8 +62,8 @@
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0 12px;
-  background: var(--overview-blue-bg);
-  color: var(--overview-blue);
+  background: var(--overview-yellow-bg);
+  color: var(--overview-yellow);
   border-radius: 14px;
   padding: 14px 18px;
 }
@@ -72,7 +74,7 @@
 .profile-pager { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; text-align: center; }
 .profile-date { margin: 0 8px; font-size: 22px; }
 .profile-period-total { margin: 12px 0; text-align: center; font-size: 27px; font-weight: 800; }
-.profile-money { display: flex; justify-content: space-between; gap: 12px; padding: 12px; border-radius: 10px; background: var(--overview-yellow-bg); color: var(--overview-yellow); }
+.profile-money { display: flex; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper-2); }
 .profile-money small { display: block; margin-top: 4px; font-size: 15px; }
 .profile-rows { list-style: none; margin: 12px 0 0; padding: 0; }
 .profile-rows li { display: flex; align-items: center; gap: 10px; padding: 8px 4px; min-height: 45px; border-bottom: 1px solid var(--line); }

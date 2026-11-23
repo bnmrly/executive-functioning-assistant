@@ -167,6 +167,14 @@ function render() {
 
 function mount(el) {
   el.innerHTML = '<div class="profile">' +
+    '<section class="profile-points" aria-labelledby="profile-points-title"><div class="profile-points-heading">' +
+    '<h2 id="profile-points-title">Pocket money</h2><strong class="profile-lifetime">£0.00</strong><span>All time</span></div>' +
+    '<div class="profile-periods" role="group" aria-label="Pocket money period">' +
+    ['Day', 'Week', 'Month'].map(label => '<button type="button" data-period="' + label.toLowerCase() + '">' + label + '</button>').join('') +
+    '</div><div class="profile-pager"><button type="button" data-move="-1" aria-label="Previous period">←</button>' +
+    '<h3 class="profile-date"></h3><button type="button" data-move="1" aria-label="Next period">→</button></div>' +
+    '<div class="profile-period-content"></div><p class="profile-points-status" role="status"></p></section>' +
+    '<div class="profile-side">' +
     '<section class="profile-identity" aria-labelledby="profile-name">' +
     '<h1 id="profile-name">Beth</h1><div class="profile-portrait">B</div>' +
     '<div class="profile-actions"><button type="button" aria-expanded="false" aria-controls="profile-avatars" data-choose-avatar>Choose an avatar</button>' +
@@ -178,13 +186,8 @@ function mount(el) {
       '<button type="button" data-avatar="' + id + '" aria-pressed="false"><img src="' + avatarUrl(id) +
       '" alt=""><span>' + label + '</span></button>').join('') + '</div>' +
     '<p class="profile-credit">Artwork by OpenMoji · CC BY-SA 4.0</p></div></section>' +
-    '<section class="profile-points" aria-labelledby="profile-points-title"><div class="profile-points-heading">' +
-    '<h2 id="profile-points-title">Pocket money</h2><strong class="profile-lifetime">£0.00</strong><span>All time</span></div>' +
-    '<div class="profile-periods" role="group" aria-label="Pocket money period">' +
-    ['Day', 'Week', 'Month'].map(label => '<button type="button" data-period="' + label.toLowerCase() + '">' + label + '</button>').join('') +
-    '</div><div class="profile-pager"><button type="button" data-move="-1" aria-label="Previous period">←</button>' +
-    '<h3 class="profile-date"></h3><button type="button" data-move="1" aria-label="Next period">→</button></div>' +
-    '<div class="profile-period-content"></div><p class="profile-points-status" role="status"></p></section></div>';
+    '<section class="profile-placeholder" aria-labelledby="profile-placeholder-title">' +
+    '<h2 id="profile-placeholder-title">Placeholder</h2></section></div></div>';
 
   const file = el.querySelector('#profile-photo');
   const picker = el.querySelector('#profile-avatars');

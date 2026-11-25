@@ -43,7 +43,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   --nav-height: 68px;
   position: fixed;
   left: 0; top: 0;
-  width: var(--stage-w, 1280px); height: 800px;
+  width: var(--stage-w, 1280px); height: var(--stage-h, 800px);
   transform-origin: top left;
   background: var(--paper);
   overflow: hidden;

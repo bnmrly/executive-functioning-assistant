@@ -334,18 +334,28 @@
   // Designed at 1280×800. Screens wider than 16:10 (e.g. 1920×1080 frames) widen the stage to their
   // aspect instead of pillarboxing; narrower screens letterbox as before.
   var STAGE_H = 800, STAGE_MIN_W = 1280;
+  var stageLayout, editingLayout;
+  function isParentInput(element) {
+    return element && element.matches('.parent-area input, .parent-area textarea, .parent-area select');
+  }
   function fit() {
     var stage = $('#stage');
     var viewport = window.visualViewport;
     var vw = viewport ? viewport.width : window.innerWidth;
     var vh = viewport ? viewport.height : window.innerHeight;
     if (!vw || !vh) return;
-    var w = Math.max(STAGE_MIN_W, Math.round(STAGE_H * vw / vh));
+    var w = editingLayout ? editingLayout.width : Math.max(STAGE_MIN_W, Math.round(STAGE_H * vw / vh));
+    var s = editingLayout ? editingLayout.scale : Math.min(vw / w, vh / STAGE_H);
+    var h = editingLayout ? Math.min(STAGE_H, vh / s) : STAGE_H;
     stage.style.setProperty('--stage-w', w + 'px');
-    var s = Math.min(vw / w, vh / STAGE_H);
+    stage.style.setProperty('--stage-h', h + 'px');
     stage.style.left = ((viewport ? viewport.offsetLeft : 0) + (vw - w * s) / 2) + 'px';
-    stage.style.top = ((viewport ? viewport.offsetTop : 0) + (vh - STAGE_H * s) / 2) + 'px';
+    stage.style.top = ((viewport ? viewport.offsetTop : 0) + (vh - h * s) / 2) + 'px';
     stage.style.transform = s === 1 ? '' : 'scale(' + s + ')';
+    stageLayout = { width: w, scale: s };
+    if (editingLayout && isParentInput(document.activeElement)) {
+      document.activeElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
   }
 
   // ------------------------------------------------------------ clock tick
@@ -365,6 +375,19 @@
   // ------------------------------------------------------------ boot
   App.start = function () {
     fit();
+    // Keep the normal text size when the keyboard reduces the viewport. The
+    // parent panel scrolls in the remaining height instead of shrinking.
+    document.addEventListener('focusin', function (event) {
+      if (isParentInput(event.target) && !editingLayout) editingLayout = stageLayout;
+    });
+    document.addEventListener('focusout', function () {
+      setTimeout(function () {
+        if (!isParentInput(document.activeElement)) {
+          editingLayout = null;
+          fit();
+        }
+      }, 0);
+    });
     window.addEventListener('resize', fit);
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', fit);

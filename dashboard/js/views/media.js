@@ -74,7 +74,9 @@ function showVideo() {
     const link = document.createElement('a');
     link.className = 'media-link';
     link.href = youtubePlaylistUrl(playlist.id);
-    link.target = '_blank';
+    const tablet = location.hostname === '127.0.0.1' &&
+      (location.port === '8765' || location.port === '5173');
+    if (!tablet) link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.textContent = 'View full playlist';
     link.setAttribute('aria-label', 'View full ' + playlist.title + ' playlist on YouTube');

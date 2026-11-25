@@ -101,6 +101,12 @@ public class MainActivity extends Activity {
   static final long TIME_NUDGE_MS = 60 * 1000;
 
   private WebView web;
+  private WebChromeClient chromeClient;
+  private FrameLayout dashboardContent;
+  private LinearLayout playlistOverlay;
+  private WebView playlistWeb;
+  private FrameLayout fullscreenVideo;
+  private WebChromeClient.CustomViewCallback fullscreenCallback;
   private ValueCallback<Uri[]> profilePhotoCallback;
   private boolean livePreview;
   private Button menuButton;
@@ -213,7 +219,25 @@ public class MainActivity extends Activity {
     web.setHorizontalScrollBarEnabled(false);
     web.setVerticalScrollBarEnabled(false);
     web.setOverScrollMode(View.OVER_SCROLL_NEVER);
-    web.setWebChromeClient(new WebChromeClient() {
+    chromeClient = new WebChromeClient() {
+      @Override
+      public void onShowCustomView(View view, CustomViewCallback callback) {
+        if (fullscreenCallback != null || portalMode) {
+          callback.onCustomViewHidden();
+          return;
+        }
+        fullscreenCallback = callback;
+        fullscreenVideo.addView(view, new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        fullscreenVideo.setVisibility(View.VISIBLE);
+        hideSystemUi();
+      }
+
+      @Override
+      public void onHideCustomView() {
+        exitFullscreenVideo();
+      }
+
       @Override
       public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback,
           FileChooserParams params) {
@@ -238,20 +262,23 @@ public class MainActivity extends Activity {
         }
         return true;
       }
-    });
+    };
+    web.setWebChromeClient(chromeClient);
     // Keep navigation inside the kiosk. When the kiosk starts at boot before Wi-Fi is up, the
     // first load fails and would stay on the error page, so retry failed main-frame loads.
     // The offline screen covers WebView's error page until a load succeeds.
     web.setWebViewClient(new WebViewClient() {
       @Override
       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-        return request.isForMainFrame() && openSpotify(request.getUrl());
+        return request.isForMainFrame()
+            && (openPlaylist(view, request.getUrl()) || openSpotify(request.getUrl()));
       }
 
       @Override
       @SuppressWarnings("deprecation")
       public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        return openSpotify(Uri.parse(url));
+        Uri target = Uri.parse(url);
+        return openPlaylist(view, target) || openSpotify(target);
       }
 
       @Override
@@ -353,8 +380,9 @@ public class MainActivity extends Activity {
     column.addView(buildPortalBar());
     column.addView(web, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
     FrameLayout root = new FrameLayout(this);
-    root.addView(column);
-    root.addView(buildOffline());
+    dashboardContent = new FrameLayout(this);
+    dashboardContent.addView(column);
+    dashboardContent.addView(buildOffline());
     menuButton = new Button(this);
     menuButton.setText("Menu");
     menuButton.setAllCaps(false);
@@ -371,8 +399,16 @@ public class MainActivity extends Activity {
     FrameLayout.LayoutParams menuPosition = new FrameLayout.LayoutParams(
         dp(72), dp(48), Gravity.BOTTOM | Gravity.LEFT);
     menuPosition.setMargins(dp(12), dp(12), dp(12), dp(12));
-    root.addView(menuButton, menuPosition);
+    dashboardContent.addView(menuButton, menuPosition);
     applyMenuButtonFlag(getIntent());
+    root.addView(dashboardContent);
+    root.addView(buildPlaylistOverlay());
+    fullscreenVideo = new FrameLayout(this);
+    fullscreenVideo.setBackgroundColor(Color.BLACK);
+    fullscreenVideo.setClickable(true);
+    fullscreenVideo.setVisibility(View.GONE);
+    root.addView(fullscreenVideo, new FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
     setContentView(root);
 
     String url = urlFrom(getIntent());
@@ -393,6 +429,7 @@ public class MainActivity extends Activity {
     resumed = true;
     web.resumeTimers();
     web.onResume();
+    resumePlaylist();
     NavigationService.setDashboardVisible(true);
     if (portalMode) {
       handler.removeCallbacks(portalCheck);
@@ -409,8 +446,10 @@ public class MainActivity extends Activity {
   protected void onPause() {
     resumed = false;
     cancelExit();
+    exitFullscreenVideo();
     // pauseTimers affects every WebView in this app process. Native retries need pausing too.
     web.onPause();
+    pausePlaylist();
     web.pauseTimers();
     handler.removeCallbacks(retry);
     handler.removeCallbacks(stall);
@@ -431,6 +470,7 @@ public class MainActivity extends Activity {
     applyBootanimFlag(intent);
     String url = urlFrom(intent);
     if (url != null) {
+      closePlaylist();
       closePortal();
       handler.removeCallbacks(retry);
       handler.removeCallbacks(stall);
@@ -480,6 +520,7 @@ public class MainActivity extends Activity {
   // Some WebViews report the page's certificate error before onPageStarted, so remember the
   // page here too.
   private void load(String url) {
+    exitFullscreenVideo();
     mainUrl = url;
     web.loadUrl(url);
   }
@@ -494,6 +535,87 @@ public class MainActivity extends Activity {
       // Devices without Spotify can still follow the web link.
       return false;
     }
+  }
+
+  private View buildPlaylistOverlay() {
+    playlistOverlay = new LinearLayout(this);
+    playlistOverlay.setOrientation(LinearLayout.VERTICAL);
+    playlistOverlay.setBackgroundColor(Color.WHITE);
+    playlistOverlay.setVisibility(View.GONE);
+
+    LinearLayout toolbar = new LinearLayout(this);
+    toolbar.setGravity(Gravity.CENTER_VERTICAL);
+    toolbar.setBackgroundColor(Color.rgb(17, 17, 17));
+    toolbar.setPadding(dp(12), dp(4), dp(12), dp(4));
+    Button back = new Button(this);
+    back.setText("Back to Video");
+    back.setAllCaps(false);
+    back.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+    back.setMinHeight(dp(48));
+    back.setOnClickListener(v -> closePlaylist());
+    toolbar.addView(back);
+
+    TextView title = new TextView(this);
+    title.setText("YouTube playlist");
+    title.setTextColor(Color.WHITE);
+    title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+    title.setPadding(dp(16), 0, 0, 0);
+    toolbar.addView(title);
+    playlistOverlay.addView(toolbar);
+    return playlistOverlay;
+  }
+
+  private boolean openPlaylist(WebView source, Uri target) {
+    String sourceUrl = source.getUrl();
+    if (sourceUrl == null || portalMode || playlistWeb != null) return false;
+    Uri page = Uri.parse(sourceUrl);
+    if (!"http".equals(page.getScheme()) || !LOCAL_HOST.equals(page.getHost())
+        || !(page.getPort() == LOCAL_PORT || (livePreview && page.getPort() == PREVIEW_PORT))
+        || !"/".equals(page.getPath()) || !"video".equals(page.getFragment())) return false;
+    if (!"https".equals(target.getScheme()) || !"www.youtube.com".equals(target.getHost())
+        || !"/playlist".equals(target.getPath()) || target.getQueryParameter("list") == null) return false;
+
+    playlistWeb = new WebView(this);
+    playlistWeb.getSettings().setJavaScriptEnabled(true);
+    playlistWeb.getSettings().setDomStorageEnabled(true);
+    playlistWeb.setWebChromeClient(chromeClient);
+    playlistWeb.setWebViewClient(new WebViewClient() {
+      @Override
+      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+        return request.isForMainFrame() && !isWebUrl(request.getUrl().toString());
+      }
+
+      @Override
+      @SuppressWarnings("deprecation")
+      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        return !isWebUrl(url);
+      }
+    });
+    playlistOverlay.addView(playlistWeb, new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
+    dashboardContent.setVisibility(View.INVISIBLE);
+    playlistOverlay.setVisibility(View.VISIBLE);
+    playlistWeb.loadUrl(target.toString());
+    return true;
+  }
+
+  private void pausePlaylist() {
+    if (playlistWeb != null) playlistWeb.onPause();
+  }
+
+  private void resumePlaylist() {
+    if (playlistWeb != null) playlistWeb.onResume();
+  }
+
+  private void closePlaylist() {
+    if (playlistWeb == null) return;
+    exitFullscreenVideo();
+    WebView closing = playlistWeb;
+    playlistWeb = null;
+    playlistOverlay.setVisibility(View.GONE);
+    playlistOverlay.removeView(closing);
+    closing.destroy();
+    dashboardContent.setVisibility(View.VISIBLE);
   }
 
   private String savedUrl() {
@@ -943,6 +1065,7 @@ public class MainActivity extends Activity {
     unregisterReceiver(networkChange);
     handler.removeCallbacksAndMessages(null);
     finishProfilePhoto(null);
+    closePlaylist();
     if (web != null) web.destroy();
     super.onDestroy();
   }
@@ -1146,8 +1269,20 @@ public class MainActivity extends Activity {
             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
   }
 
+  private void exitFullscreenVideo() {
+    WebChromeClient.CustomViewCallback callback = fullscreenCallback;
+    if (callback == null) return;
+    fullscreenCallback = null;
+    fullscreenVideo.setVisibility(View.GONE);
+    fullscreenVideo.removeAllViews();
+    callback.onCustomViewHidden();
+    hideSystemUi();
+  }
+
   @Override
   public void onBackPressed() {
-    if (web.canGoBack()) web.goBack();
+    if (fullscreenCallback != null) exitFullscreenVideo();
+    else if (playlistWeb != null) closePlaylist();
+    else if (web.canGoBack()) web.goBack();
   }
 }

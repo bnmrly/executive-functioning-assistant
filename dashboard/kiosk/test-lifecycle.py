@@ -120,7 +120,8 @@ public class MainActivity extends Activity {
   boolean resumed, retryPending, probing, portalMode, portalFound, portalDismissed, portalFailed, pageFailed;
   long portalSince; String retryUrl, mainUrl; boolean wifi=true; int loads, opened, left, clockNudges;
   void nudgeNetworkTime() { clockNudges++; }
-  void cancelExit() {} void load(String url) { loads++; }
+  void cancelExit() {} void exitFullscreenVideo() {} void load(String url) { loads++; }
+  void pausePlaylist() {} void resumePlaylist() {}
   boolean wifiConnected() { return wifi; } void showOffline() { checkPortal(); }
   static int probePortal() { return PROBE_PORTAL; }
   String savedUrl() { return "http://example.invalid/"; }

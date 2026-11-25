@@ -51,7 +51,6 @@
 
   const defaults = { morning: morningSections, evening: eveningSections };
   const routineKey = routine => 'dashboard-routine-v1:' + routine;
-  const noteKey = date => 'dashboard-plan-note-v1:' + date;
 
   function read(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
@@ -72,14 +71,18 @@
     localStorage.setItem(routineKey(routine), JSON.stringify(groups));
   }
 
-  function notes(date) { return read(noteKey(date), {}); }
-  function saveNotes(date, values) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Choose a date for these notes.');
-    localStorage.setItem(noteKey(date), JSON.stringify(values));
+  // Remove retired Today’s notes while preserving the rest of this origin’s data.
+  try {
+    for (let index = localStorage.length - 1; index >= 0; index--) {
+      const key = localStorage.key(index);
+      if (key?.startsWith('dashboard-plan-note-v1:')) localStorage.removeItem(key);
+    }
+  } catch {
+    // Storage may be unavailable in some browser contexts.
   }
 
   window.DashboardRoutines = {
-    routineKey, sections, saveSections, notes, saveNotes,
+    routineKey, sections, saveSections,
     isCustom: routine => Array.isArray(read(routineKey(routine), null)),
   };
 })();

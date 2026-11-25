@@ -131,10 +131,6 @@
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
-.parent-notes { display: grid; gap: 12px; }
-.parent-notes label { display: grid; gap: 4px; font-weight: 700; }
-.parent-notes input { justify-self: start; }
-.parent-notes textarea { resize: vertical; }
 .parent-tool :is(input:not([type="checkbox"]), textarea, select) {
   min-height: 44px;
   min-width: 0;

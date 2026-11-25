@@ -10,40 +10,6 @@ import {
 
 const timeout = 5 * 60_000;
 
-function mountNotes(panel) {
-  const routines = window.DashboardRoutines;
-  panel.innerHTML =
-    '<form class="parent-notes"><label>Date <input name="date" type="date" required></label>' +
-    '<label>School plan <textarea name="school" maxlength="300" rows="2"></textarea></label>' +
-    '<label>Home plan <textarea name="home" maxlength="300" rows="2"></textarea></label>' +
-    '<p>These notes appear on Today on the date you choose.</p><div class="parent-actions"><button type="submit">Save notes</button></div>' +
-    '<p class="parent-status" role="status"></p></form>';
-  const form = panel.querySelector("form");
-  const fields = form.elements;
-  const status = panel.querySelector(".parent-status");
-  fields.date.value = window.RoutinePoints.dayKey();
-  function load() {
-    const note = routines.notes(fields.date.value);
-    fields.school.value = note.school || "";
-    fields.home.value = note.home || "";
-    status.textContent = "";
-  }
-  fields.date.addEventListener("change", load);
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    try {
-      routines.saveNotes(fields.date.value, {
-        school: fields.school.value.trim(),
-        home: fields.home.value.trim(),
-      });
-      status.textContent = "Notes saved.";
-    } catch (error) {
-      status.textContent = error.message;
-    }
-  });
-  load();
-}
-
 function mountParentAvatar(panel) {
   panel.innerHTML =
     '<div class="profile-avatar-grid">' +
@@ -120,16 +86,14 @@ export function mountParentMode(container, child, onLock) {
       "<header><div><h1>Dad</h1><p>Parent settings</p></div>" +
       '<button type="button" data-lock-parent>Lock &amp; return to Beth</button></header>' +
       '<nav class="parent-tools" aria-label="Parent settings">' +
-      '<button type="button" data-tool="notes">Today’s notes</button>' +
       '<button type="button" data-tool="checklists" disabled>Edit Checklists</button>' +
       '<button type="button" data-tool="earnings">Pocket money</button>' +
       '<button type="button" data-tool="media">Media</button>' +
       '<button type="button" data-tool="avatar">Dad’s avatar</button></nav>' +
-      '<section class="parent-tool" data-panel="notes"></section><section class="parent-tool" data-panel="checklists" hidden></section>' +
+      '<section class="parent-tool" data-panel="checklists" hidden></section>' +
       '<section class="parent-tool" data-panel="earnings" hidden></section><section class="parent-tool" data-panel="media" hidden></section>' +
       '<section class="parent-tool" data-panel="avatar" hidden></section>';
     const mount = {
-      notes: mountNotes,
       checklists: mountRoutineEditor,
       earnings: mountEarningsReview,
       media: (panel) => { unmountMedia = mountMediaEditor(panel); },
@@ -160,7 +124,7 @@ export function mountParentMode(container, child, onLock) {
     child.hidden = true;
     container.hidden = false;
     paintNavPortrait(true);
-    renderTool("notes");
+    renderTool("earnings");
     resetTimer();
     container.querySelector("[data-lock-parent]").focus();
   }

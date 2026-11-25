@@ -149,7 +149,6 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
         (data.status === 'permission_required' ? '<button class="h-calendar-allow" type="button">Allow calendar access</button>' : '');
       schoolPanel.innerHTML = '<p class="h-agenda-status">Calendar unavailable</p>';
       homePanel.innerHTML = '<p class="h-agenda-status">Calendar unavailable</p>';
-      paintParentNotes(new Date());
       return;
     }
     const today = new Date(data.dayStart);
@@ -164,7 +163,6 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
     }
     schoolPanel.innerHTML = allDayPlan(todayAllDay.filter(isSchoolPlan), 'No school plan today');
     homePanel.innerHTML = allDayPlan(todayAllDay.filter(event => !isSchoolPlan(event)), 'Nothing planned');
-    paintParentNotes(new Date());
     let events = data.events.filter(event => !event.allDay && onDay(event, today, tomorrow));
     let day = today;
     if (!events.length) {
@@ -215,17 +213,6 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
     }
   }
 
-  function paintParentNotes(now) {
-    const notes = window.DashboardRoutines.notes(window.RoutinePoints.dayKey(now));
-    for (const key of ['school', 'home']) {
-      const note = view.querySelector('.h-' + key + '-note');
-      const plan = view.querySelector('.h-' + key + '-plan');
-      note.textContent = notes[key] || '';
-      note.hidden = !note.textContent;
-      plan.hidden = !note.hidden && !plan.querySelector('.h-plan-events');
-    }
-  }
-
   function mount(el) {
     el.innerHTML = '<div class="home">' +
       '<div class="h-clock"></div>' +
@@ -245,10 +232,8 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
           '<div class="h-agenda-content"><p class="h-agenda-status" role="status">Loading calendar…</p></div></section>' +
         '<section class="h-different" aria-label="School and home plans">' +
           '<section class="h-plan-section" aria-labelledby="h-school-plan-title"><h2 id="h-school-plan-title">School plan</h2>' +
-            '<p class="h-plan-note h-different-event h-school-note" hidden></p>' +
             '<div class="h-school-plan"><p class="h-agenda-status">Loading calendar…</p></div></section>' +
           '<section class="h-plan-section" aria-labelledby="h-home-plan-title"><h2 id="h-home-plan-title">Home plan</h2>' +
-            '<p class="h-plan-note h-different-event h-home-note" hidden></p>' +
             '<div class="h-home-plan"><p class="h-agenda-status">Loading calendar…</p></div></section>' +
           '</section></div></div>';
     el.querySelector('.h-calendar-refresh')?.addEventListener('click', () => void refreshCalendar(true));
@@ -269,7 +254,6 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
     if (!el.firstChild) mount(el);
     const now = new Date();
     renderClock(now);
-    paintParentNotes(now);
     view.querySelector('.h-different').dataset.planWeekday = now.getDay();
     paintForecast(now);
     if (App.current === 'home') {

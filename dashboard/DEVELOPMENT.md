@@ -1,5 +1,14 @@
 # Local development
 
+## Calendar workflow
+
+Google Calendar is the single place to add and edit plans, reminders, and appointments. Users can edit their synced calendar in Google Calendar on any device. The Android tablet reads Beth’s Calendar through Google Calendar sync and displays its events on Today and Calendar. Keep both views read-only for calendar data. Do not bring back Today’s notes in Parent mode or add local storage for dated plans.
+
+When the user asks in Codex for a calendar change, use the connected Google Calendar connector to edit Beth’s Calendar. Check for matching events first and group any missing questions together. Use Europe/London for dates and times.
+
+- Use all-day events named `School plan: …` or `Home plan: …` for special days and day-long reminders, such as Christmas jumper day or a birthday.
+- Use timed events for appointments and activities with a known start time, such as a school performance.
+
 ## Use the Codex preview for everyday edits
 
 Use the in-app browser in Codex for layout, colours, text, and other web changes. Reuse the open preview tab so edits are easy to follow. The tablet can stay disconnected during this work.
@@ -8,7 +17,7 @@ From the repository root, run `npm --prefix dashboard run dev -- --port 5173 --s
 
 Open [Today](http://localhost:5173/#home) or the [Morning checklist](http://localhost:5173/#morning) in the Codex browser. Save changes in VS Code to refresh the preview automatically, including JavaScript, CSS, and HTML in `public/checklist/`. Checklist progress is saved for this browser address separately from the installed tablet app.
 
-Today and Calendar in the Codex preview can use a local Google Calendar snapshot refreshed through the connected Google Calendar plugin. Dates outside the snapshot use labelled sample events. The tablet mirror reads the tablet's synced calendar directly.
+Today and Calendar in the Codex preview can use a temporary local Google Calendar snapshot. When asked to verify real events in the preview, refresh the snapshot for the relevant dates through the connected Google Calendar connector and keep it out of Git. Dates outside the snapshot may show labelled sample events. The tablet mirror reads the tablet's synced calendar directly.
 
 Keep the terminal running while editing. Stop it with Ctrl+C. If the server is already running, use its existing terminal instead of starting a second copy.
 

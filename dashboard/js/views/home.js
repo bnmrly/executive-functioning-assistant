@@ -1,5 +1,6 @@
 // Today combines the device clock with the local forecast for Chorlton, Manchester.
 import { planTitle, isSchoolPlan } from './plan-events.js';
+import { readTodayMessage, todayMessageDate } from '../today-message.js';
 
 (function () {
   'use strict';
@@ -213,6 +214,13 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
     }
   }
 
+  function paintDailyMessage(now) {
+    const card = view.querySelector('.h-message');
+    const text = readTodayMessage(todayMessageDate(now));
+    card.querySelector('p').textContent = text;
+    card.hidden = !text;
+  }
+
   function mount(el) {
     el.innerHTML = '<div class="home">' +
       '<div class="h-clock"></div>' +
@@ -225,11 +233,14 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
         '<div class="label">Tomorrow</div><div class="h-wx-data"></div>' +
       '</section>' +
       '<div class="h-lower">' +
+        '<div class="h-agenda-stack">' +
         '<section class="h-agenda" aria-labelledby="h-agenda-title">' +
           '<header class="h-panel-header"><h2 class="h-agenda-title" id="h-agenda-title">Today’s plan</h2>' +
             (localPreview ? '' : '<button class="h-calendar-refresh" type="button" aria-label="Refresh calendar">Refresh</button>') +
           '</header>' +
           '<div class="h-agenda-content"><p class="h-agenda-status" role="status">Loading calendar…</p></div></section>' +
+        '<section class="h-message" aria-labelledby="h-message-title" hidden>' +
+          '<h2 id="h-message-title">Message for today</h2><p></p></section></div>' +
         '<section class="h-different" aria-label="School and home plans">' +
           '<section class="h-plan-section" aria-labelledby="h-school-plan-title"><h2 id="h-school-plan-title">School plan</h2>' +
             '<div class="h-school-plan"><p class="h-agenda-status">Loading calendar…</p></div></section>' +
@@ -254,6 +265,7 @@ import { planTitle, isSchoolPlan } from './plan-events.js';
     if (!el.firstChild) mount(el);
     const now = new Date();
     renderClock(now);
+    paintDailyMessage(now);
     view.querySelector('.h-different').dataset.planWeekday = now.getDay();
     paintForecast(now);
     if (App.current === 'home') {

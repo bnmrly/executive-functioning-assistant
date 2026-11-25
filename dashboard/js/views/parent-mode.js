@@ -1,6 +1,7 @@
 import { mountEarningsReview } from "./earnings-review.js";
 import { mountMediaEditor } from "./media-editor.js";
 import { mountRoutineEditor } from "./routine-editor.js";
+import { readTodayMessage, saveTodayMessage, todayMessageDate, todayMessageLimit } from "../today-message.js";
 import {
   avatarUrl,
   avatars,
@@ -9,6 +10,36 @@ import {
 } from "./profile-portraits.js";
 
 const timeout = 5 * 60_000;
+
+function mountTodayMessage(panel) {
+  panel.innerHTML =
+    '<form class="parent-message-form">' +
+    '<label>Message for today<textarea name="message" rows="4" maxlength="' + todayMessageLimit + '"></textarea></label>' +
+    '<p>This appears on Today until midnight. Save an empty message to clear the card.</p>' +
+    '<div class="parent-actions"><button type="submit">Save message</button></div>' +
+    '<p class="parent-status" role="status"></p></form>';
+  const form = panel.querySelector("form");
+  const field = form.elements.message;
+  const status = panel.querySelector(".parent-status");
+  let date = todayMessageDate();
+  field.value = readTodayMessage(date);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const today = todayMessageDate();
+    if (date !== today) {
+      date = today;
+      status.textContent = "The date has changed. Save again to use this message for today.";
+      return;
+    }
+    try {
+      saveTodayMessage(field.value, date);
+      status.textContent = field.value.trim() ? "Message saved." : "Message cleared.";
+    } catch {
+      status.textContent = "Could not save the message.";
+    }
+  });
+}
 
 function mountParentAvatar(panel) {
   panel.innerHTML =
@@ -86,14 +117,17 @@ export function mountParentMode(container, child, onLock) {
       "<header><div><h1>Dad</h1><p>Parent settings</p></div>" +
       '<button type="button" data-lock-parent>Lock &amp; return to Beth</button></header>' +
       '<nav class="parent-tools" aria-label="Parent settings">' +
+      '<button type="button" data-tool="message">Message for today</button>' +
       '<button type="button" data-tool="checklists" disabled>Edit Checklists</button>' +
       '<button type="button" data-tool="earnings">Pocket money</button>' +
       '<button type="button" data-tool="media">Media</button>' +
       '<button type="button" data-tool="avatar">Dad’s avatar</button></nav>' +
+      '<section class="parent-tool" data-panel="message" hidden></section>' +
       '<section class="parent-tool" data-panel="checklists" hidden></section>' +
       '<section class="parent-tool" data-panel="earnings" hidden></section><section class="parent-tool" data-panel="media" hidden></section>' +
       '<section class="parent-tool" data-panel="avatar" hidden></section>';
     const mount = {
+      message: mountTodayMessage,
       checklists: mountRoutineEditor,
       earnings: mountEarningsReview,
       media: (panel) => { unmountMedia = mountMediaEditor(panel); },

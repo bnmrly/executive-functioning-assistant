@@ -149,6 +149,9 @@
   border-radius: 10px;
 }
 .parent-tool legend { font-weight: 700; }
+.parent-message-form label { display: grid; gap: 8px; font-weight: 700; }
+.parent-tool .parent-message-form textarea { font-size: 22px; }
+.parent-message-form > p { margin-top: 10px; }
 .parent-editor-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
 .parent-editor-row input { flex: 1 1 12rem; }
 .parent-earnings-fields {

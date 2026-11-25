@@ -9,6 +9,8 @@ When the user asks in Codex for a calendar change, use the connected Google Cale
 - Use all-day events named `School plan: …` or `Home plan: …` for special days and day-long reminders, such as Christmas jumper day or a birthday.
 - Use timed events for appointments and activities with a known start time, such as a school performance.
 
+Use **Profile → Parent mode → Message for today** for a personal message. The message is saved on the device and appears in its own card under Today’s plan until midnight in Europe/London. Keep messages out of Git and hosted builds.
+
 ## Use the Codex preview for everyday edits
 
 Use the in-app browser in Codex for layout, colours, text, and other web changes. Reuse the open preview tab so edits are easy to follow. The tablet can stay disconnected during this work.

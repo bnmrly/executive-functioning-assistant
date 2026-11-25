@@ -13,7 +13,7 @@
 .calendar-day time { font-size: 32px; line-height: 1; padding: 8px; border-radius: 10px; }
 .calendar-day--today time { background: var(--ink); color: var(--paper); }
 .calendar-day ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-.calendar-day li { min-width: 0; padding: 12px 10px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.calendar-day ol > li { min-width: 0; padding: 12px 10px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
 .calendar-event-time { display: block; margin-bottom: 10px; color: var(--mute); font-size: 17px; font-weight: 700; }
 .calendar-event-title { display: block; overflow-wrap: anywhere; font-size: 21px; font-weight: 700; line-height: 1.2; }
 .calendar-event--all-day .calendar-event-title {
@@ -23,6 +23,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.calendar-day li.calendar-event--overview { background: var(--overview-bg); }
-.calendar-event--overview .calendar-event-title { color: var(--overview-color); }
+.calendar-day .calendar-plan { background: var(--overview-bg); color: var(--overview-color); }
+.calendar-plan h3 { margin: 0 0 8px; font-size: 14px; }
+.calendar-plan ul { display: grid; gap: 6px; }
+.calendar-plan ul li { font-size: 17px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
 .calendar-empty { text-align: center; color: var(--mute); font-size: 17px; }

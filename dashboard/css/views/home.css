@@ -41,8 +41,10 @@
 .h-lower { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; }
 
 .h-lower { min-height: 0; }
-.h-agenda, .h-different { min-width: 0; overflow-y: auto; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r); padding: 24px; }
-.h-different { background: var(--overview-bg, var(--paper-2)); color: var(--overview-color, var(--ink)); }
+.h-agenda, .h-different { min-width: 0; overflow-y: auto; }
+.h-agenda, .h-plan-section { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r); padding: 24px; }
+.h-different { display: grid; align-content: start; gap: 16px; }
+.h-plan-section { min-width: 0; background: var(--overview-bg, var(--paper-2)); color: var(--overview-color, var(--ink)); }
 .h-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .h-lower h2 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.15; }
 .h-calendar-refresh, .h-calendar-allow { min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); font: inherit; cursor: pointer; }
@@ -58,7 +60,6 @@
 .h-different-event { margin: 28px 0 0; font-family: var(--serif); font-size: 42px; line-height: 1.15; }
 .h-example-note { margin: 16px 0 0; color: var(--mute); font-size: 16px; }
 
-.h-plan-section + .h-plan-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
 .h-plan-events { margin: 0; padding: 0; list-style: none; }
 .h-plan-events .h-different-event { margin-top: 16px; overflow-wrap: anywhere; }
 .h-different .h-agenda-empty, .h-different .h-agenda-status { color: inherit; }

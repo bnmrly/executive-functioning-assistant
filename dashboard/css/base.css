@@ -124,7 +124,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   font-size: 16px;
   text-underline-offset: .19em;
 }
-.video-player { display: block; width: 100%; aspect-ratio: 16 / 9; flex: none; border: 0; border-radius: 12px; background: var(--black); }
 
 /* ---- event sheet */
 .sheet--event { width: 640px; overflow: hidden; }

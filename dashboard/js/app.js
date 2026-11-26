@@ -313,7 +313,7 @@
   var idleSec = 0;
   function onIdleTick() {
     // Leave the checklist or media player visible while in use.
-    if (['morning', 'evening', 'music', 'video'].includes(App.current)) {
+    if (['morning', 'evening', 'music'].includes(App.current)) {
       idleSec = 0;
       return;
     }
